@@ -21,18 +21,10 @@
 #define MAX_LANG_VALUE_STRING  128
 #define MAX_LANG_MULTI_STRING  (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT)
 
-#define LANG_VIRTUAL_MACHINE   1
-
 
 #define _(%0) Lang_GetText(#%0)
 #define _m(%0) Lang_GetMultiText(#%0)
 
-
-stock Lang_OnGameModeInit()
-{
-	Lang_LoadText("lang_ru.txt");
-	return 1;
-}
 
 stock Lang_LoadText(filename[])
 {
@@ -101,7 +93,7 @@ stock Lang_SetText(varname[], value[])
 	if (isnull(varname)) {
 		return 0;	
 	}
-	setproperty(LANG_VIRTUAL_MACHINE, .value = bernstein(varname), .string = value);
+	SetSVarString(varname, value);
 	return 1;
 }
 
@@ -109,16 +101,16 @@ stock Lang_GetText(varname[])
 {
 	new string[MAX_LANG_VALUE_STRING];
 	if (!isnull(varname)) {
-		new exist = getproperty(LANG_VIRTUAL_MACHINE, .value = bernstein(varname), .string = string);
-		if (exist == 0) {
+		new length = GetSVarString(varname, string, sizeof(string));
+		FixAscii(string);
+
+		if (length == 0) {
 			strcat(string, "Error: lang value ");
 			strcat(string, varname);
 			strcat(string, " not found.");
-		} else {
-			strunpack(string, string);
 		}
 	} else {
-		string = "Error: lang varname is null";
+		strcat(string, "Error: lang varname is null");
 	}
 	return string;
 }
@@ -128,16 +120,16 @@ stock Lang_GetMultiText(varname[])
 	new string[MAX_LANG_MULTI_STRING];
 	if (!isnull(varname)) {
 		new
-			exist,
+			length,
 			property_value[MAX_LANG_VALUE_STRING],
 			property_name[MAX_LANG_VAR_STRING + 6];
 
 		for (new i = 0; i < MAX_MULTI_VAR_COUNT; i++) {
 			format(property_name, sizeof(property_name), "%s_%d", varname, i);
-			exist = getproperty(LANG_VIRTUAL_MACHINE, .value = bernstein(property_name), .string = property_value);
+			length = GetSVarString(property_name, property_value, sizeof(property_value));
 			
-			if (exist != 0) {
-				strunpack(property_value, property_value);
+			if (length != 0) {
+				FixAscii(property_value);
 				strcat(string, property_value);
 			} else {
 				if (i == 0) {
@@ -157,7 +149,7 @@ stock Lang_GetMultiText(varname[])
 stock Lang_DeleteText(varname[])
 {
 	if (!isnull(varname)) {
-		return deleteproperty(LANG_VIRTUAL_MACHINE, .value = bernstein(varname));
+		return DeleteSVar(varname);
 	}
 	return 0;
 }
