@@ -1,6 +1,6 @@
 /*
 
-	About: property lang system
+	About: svar lang system
 	Author: ziggi
 
 */
