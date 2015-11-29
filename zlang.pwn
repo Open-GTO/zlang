@@ -31,7 +31,9 @@
 #endif
 
 #if !defined FixAscii
-stock FixAscii(text[])
+#define FixAscii _FixAscii
+
+static stock _FixAscii(text[])
 {
 	for (new i = 0; text[i] != '\0'; i++) {
 		text[i] &= 0xFF;
