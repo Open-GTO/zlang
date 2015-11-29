@@ -25,6 +25,19 @@
 #define _(%0) Lang_GetText(#%0)
 #define _m(%0) Lang_GetMultiText(#%0)
 
+#if !defined isnull
+	#define isnull(%1) \
+				((!(%1[0])) || (((%1[0]) == '\1') && (!(%1[1]))))
+#endif
+
+#if !defined FixAscii
+stock FixAscii(text[])
+{
+	for (new i = 0; text[i] != '\0'; i++) {
+		text[i] &= 0xFF;
+	}
+}
+#endif
 
 stock Lang_LoadText(filename[])
 {
