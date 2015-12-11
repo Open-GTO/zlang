@@ -5,6 +5,10 @@
 
 */
 
+#if !defined _samp_included
+	#error "Please include a_samp or a_npc before zlang"
+#endif
+
 #if defined _zlang_included
 	#endinput
 #endif
@@ -22,8 +26,8 @@
 #define MAX_LANG_MULTI_STRING  (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT)
 
 
-#define _(%0) Lang_GetText(#%0)
-#define _m(%0) Lang_GetMultiText(#%0)
+#define _(%0) Lang_ReturnText(#%0)
+#define _m(%0) Lang_ReturnMultiText(#%0)
 
 #if !defined isnull
 	#define isnull(%1) \
@@ -118,27 +122,35 @@ stock Lang_SetText(varname[], value[])
 	return 1;
 }
 
-stock Lang_GetText(varname[])
+stock Lang_GetText(varname[], string[], size = sizeof(string))
 {
-	new string[MAX_LANG_VALUE_STRING];
-	if (!isnull(varname)) {
-		new length = GetSVarString(varname, string, sizeof(string));
-		FixAscii(string);
+	string[0] = '\0';
 
+	if (!isnull(varname)) {
+		new length = GetSVarString(varname, string, size);
 		if (length == 0) {
-			strcat(string, "Error: lang variable ");
-			strcat(string, varname);
-			strcat(string, " not found.");
+			strcat(string, "Error: lang variable ", size);
+			strcat(string, varname, size);
+			strcat(string, " not found.", size);
+		} else {
+			FixAscii(string);
 		}
 	} else {
-		strcat(string, "Error: lang varname is null");
+		strcat(string, "Error: lang varname is null", size);
 	}
+}
+
+stock Lang_ReturnText(varname[])
+{
+	new string[MAX_LANG_VALUE_STRING];
+	Lang_GetText(varname, string);
 	return string;
 }
 
-stock Lang_GetMultiText(varname[])
+stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 {
-	new string[MAX_LANG_MULTI_STRING];
+	string[0] = '\0';
+
 	if (!isnull(varname)) {
 		new
 			length,
@@ -151,19 +163,25 @@ stock Lang_GetMultiText(varname[])
 			
 			if (length != 0) {
 				FixAscii(var_value);
-				strcat(string, var_value);
+				strcat(string, var_value, size);
 			} else {
 				if (i == 0) {
-					strcat(string, "Error: multi lang value ");
-					strcat(string, varname);
-					strcat(string, " not found.");
+					strcat(string, "Error: multi lang value ", size);
+					strcat(string, varname, size);
+					strcat(string, " not found.", size);
 				}
 				break;
 			}
 		}
 	} else {
-		string = "Error: multi lang varname is null";
+		strcat(string, "Error: multi lang varname is null", size);
 	}
+}
+
+stock Lang_ReturnMultiText(varname[])
+{
+	new string[MAX_LANG_MULTI_STRING];
+	Lang_GetMultiText(varname, string);
 	return string;
 }
 
