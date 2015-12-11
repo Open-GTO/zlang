@@ -29,8 +29,8 @@
 #define _(%0) Lang_ReturnText(#%0)
 #define _m(%0) Lang_ReturnMultiText(#%0)
 
-#define __(%0,%1) Lang_ReturnText(#%0,%1)
-#define __m(%0,%1) Lang_ReturnMultiText(#%0,%1)
+#define __(%0,%1) Lang_GetText(#%0,%1)
+#define __m(%0,%1) Lang_GetMultiText(#%0,%1)
 
 #if !defined isnull
 	#define isnull(%1) \
