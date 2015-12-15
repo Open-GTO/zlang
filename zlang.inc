@@ -77,6 +77,12 @@ stock Lang_LoadText(filename[])
 					}
 
 					strmid(varname, string, 0, i);
+
+					if (Lang_IsTextExists(varname)) {
+						printf("Error: duplicated variable name %s", varname);
+						break;
+					}
+
 					sep_pos = i;
 				}
 			} else if (string[i] == '\\') {
@@ -186,6 +192,22 @@ stock Lang_ReturnMultiText(varname[])
 	new string[MAX_LANG_MULTI_STRING];
 	Lang_GetMultiText(varname, string);
 	return string;
+}
+
+stock Lang_IsTextExists(varname[])
+{
+	if (isnull(varname)) {
+		return 0;
+	}
+
+	new
+		string[MAX_LANG_MULTI_STRING];
+
+	if (GetSVarString(varname, string, sizeof(string)) != 0) {
+		return 1;
+	}
+
+	return 0;
 }
 
 stock Lang_DeleteText(varname[])
