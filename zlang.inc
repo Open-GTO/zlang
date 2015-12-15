@@ -200,10 +200,7 @@ stock Lang_IsTextExists(varname[])
 		return 0;
 	}
 
-	new
-		string[MAX_LANG_MULTI_STRING];
-
-	if (GetSVarString(varname, string, sizeof(string)) != 0) {
+	if (GetSVarType(varname) == SERVER_VARTYPE_NONE) {
 		return 1;
 	}
 
