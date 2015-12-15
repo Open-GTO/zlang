@@ -200,7 +200,7 @@ stock Lang_IsTextExists(varname[])
 		return 0;
 	}
 
-	if (GetSVarType(varname) == SERVER_VARTYPE_NONE) {
+	if (GetSVarType(varname) != SERVER_VARTYPE_NONE) {
 		return 1;
 	}
 
