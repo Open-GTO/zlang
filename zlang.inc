@@ -55,7 +55,7 @@ stock Lang_LoadText(filename[])
 		printf("Error: no such language file '%s'", filename);
 		return 0;
 	}
-	
+
 	new
 		i,
 		sep_pos,
@@ -66,7 +66,7 @@ stock Lang_LoadText(filename[])
 		if (string[0] == '\0' || (string[0] == '/' && string[1] == '/')) {
 			continue;
 		}
-		
+
 		sep_pos = -1;
 		for (i = 0; string[i] >= ' '; i++) {
 			if (sep_pos == -1) {
@@ -78,7 +78,7 @@ stock Lang_LoadText(filename[])
 
 					strmid(varname, string, 0, i);
 
-					if (Lang_IsTextExists(varname)) {
+					if (!Lang_IsLoaded() && Lang_IsTextExists(varname)) {
 						printf("Error: duplicated variable name %s", varname);
 						break;
 					}
@@ -118,7 +118,19 @@ stock Lang_LoadText(filename[])
 	}
 
 	fclose(flang);
+
+	Lang_SetLoadedStatus(true);
 	return 1;
+}
+
+stock Lang_IsLoaded()
+{
+	return GetSVarInt("zlang_loaded") == 1;
+}
+
+stock Lang_SetLoadedStatus(bool:status)
+{
+	SetSVarInt("zlang_loaded", _:status);
 }
 
 stock Lang_SetText(varname[], value[])
