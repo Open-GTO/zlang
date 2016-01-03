@@ -22,7 +22,7 @@
 #define MAX_MULTI_VAR_COUNT    10
 
 #define MAX_LANG_VAR_STRING    39
-#define MAX_LANG_VALUE_STRING  128
+#define MAX_LANG_VALUE_STRING  144
 #define MAX_LANG_MULTI_STRING  (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT)
 
 
@@ -60,7 +60,7 @@ stock Lang_LoadText(filename[])
 		i,
 		sep_pos,
 		varname[MAX_LANG_VAR_STRING + 1],
-		string[MAX_LANG_VALUE_STRING + MAX_LANG_VAR_STRING + 2];
+		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1];
 
 	while (fread(flang, string, sizeof(string))) {
 		if (string[0] == '\0' || (string[0] == '/' && string[1] == '/')) {
