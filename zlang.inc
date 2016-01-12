@@ -16,10 +16,13 @@
 #define _zlang_included
 #pragma library zlang
 
+/*
+	Defines
+*/
 
-#define MAX_TEXT_ENTRIES       1024
-
-#define MAX_MULTI_VAR_COUNT    10
+#if !defined MAX_MULTI_VAR_COUNT
+	#define MAX_MULTI_VAR_COUNT    10
+#endif
 
 #define MAX_LANG_VAR_STRING    39
 #define MAX_LANG_VALUE_STRING  144
@@ -32,21 +35,31 @@
 #define __(%0,%1) Lang_GetText(#%0,%1)
 #define __m(%0,%1) Lang_GetMultiText(#%0,%1)
 
+/*
+	isnull
+*/
+
 #if !defined isnull
 	#define isnull(%1) \
 				((!(%1[0])) || (((%1[0]) == '\1') && (!(%1[1]))))
 #endif
 
-#if !defined FixAscii
-#define FixAscii _FixAscii
+/*
+	FixAscii
+*/
 
-static stock _FixAscii(text[])
+#if !defined FixAscii
+stock FixAscii(text[])
 {
 	for (new i = 0; text[i] != '\0'; i++) {
 		text[i] &= 0xFF;
 	}
 }
 #endif
+
+/*
+	Lang_LoadText
+*/
 
 stock Lang_LoadText(filename[])
 {
@@ -123,15 +136,27 @@ stock Lang_LoadText(filename[])
 	return 1;
 }
 
-stock Lang_IsLoaded()
+/*
+	Lang_IsLoaded
+*/
+
+static stock Lang_IsLoaded()
 {
 	return GetSVarInt("zlang_loaded") == 1;
 }
 
-stock Lang_SetLoadedStatus(bool:status)
+/*
+	Lang_SetLoadedStatus
+*/
+
+static stock Lang_SetLoadedStatus(bool:status)
 {
 	SetSVarInt("zlang_loaded", _:status);
 }
+
+/*
+	Lang_SetText
+*/
 
 stock Lang_SetText(varname[], value[])
 {
@@ -142,6 +167,10 @@ stock Lang_SetText(varname[], value[])
 	SetSVarString(varname, value);
 	return 1;
 }
+
+/*
+	Lang_GetText
+*/
 
 stock Lang_GetText(varname[], string[], size = sizeof(string))
 {
@@ -161,12 +190,20 @@ stock Lang_GetText(varname[], string[], size = sizeof(string))
 	}
 }
 
+/*
+	Lang_ReturnText
+*/
+
 stock Lang_ReturnText(varname[])
 {
 	new string[MAX_LANG_VALUE_STRING];
 	Lang_GetText(varname, string);
 	return string;
 }
+
+/*
+	Lang_GetMultiText
+*/
 
 stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 {
@@ -199,12 +236,20 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 	}
 }
 
+/*
+	Lang_ReturnMultiText
+*/
+
 stock Lang_ReturnMultiText(varname[])
 {
 	new string[MAX_LANG_MULTI_STRING];
 	Lang_GetMultiText(varname, string);
 	return string;
 }
+
+/*
+	Lang_IsTextExists
+*/
 
 stock Lang_IsTextExists(varname[])
 {
@@ -218,6 +263,10 @@ stock Lang_IsTextExists(varname[])
 
 	return 0;
 }
+
+/*
+	Lang_DeleteText
+*/
 
 stock Lang_DeleteText(varname[])
 {
