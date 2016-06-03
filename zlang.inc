@@ -14,7 +14,6 @@
 #endif
 
 #define _zlang_included
-#pragma library zlang
 
 /*
 	Defines
@@ -161,7 +160,7 @@ static stock Lang_SetLoadedStatus(bool:status)
 stock Lang_SetText(varname[], value[])
 {
 	if (isnull(varname)) {
-		return 0;	
+		return 0;
 	}
 
 	SetSVarString(varname, value);
@@ -218,7 +217,7 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 		for (new i = 0; i < MAX_MULTI_VAR_COUNT; i++) {
 			format(var_name, sizeof(var_name), "%s_%d", varname, i);
 			length = GetSVarString(var_name, var_value, sizeof(var_value));
-			
+
 			if (length != 0) {
 				FixAscii(var_value);
 				strcat(string, var_value, size);
