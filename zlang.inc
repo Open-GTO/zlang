@@ -183,10 +183,12 @@ stock Lang_GetText(varname[], string[], size = sizeof(string))
 			strcat(string, " not found.", size);
 		} else {
 			FixAscii(string);
+			return 1;
 		}
 	} else {
 		strcat(string, "Error: lang varname is null", size);
 	}
+	return 0;
 }
 
 /*
@@ -221,6 +223,7 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 			if (length != 0) {
 				FixAscii(var_value);
 				strcat(string, var_value, size);
+				return 1;
 			} else {
 				if (i == 0) {
 					strcat(string, "Error: multi lang value ", size);
@@ -233,6 +236,7 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 	} else {
 		strcat(string, "Error: multi lang varname is null", size);
 	}
+	return 0;
 }
 
 /*
