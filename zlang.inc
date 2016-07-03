@@ -75,7 +75,7 @@ stock Lang_LoadText(filename[])
 		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1];
 
 	while (fread(flang, string, sizeof(string))) {
-		if (string[0] == '\0' || (string[0] == '/' && string[1] == '/')) {
+		if (string[0] == '\0' || string[0] == '#' || string[0] == ';') {
 			continue;
 		}
 
