@@ -212,6 +212,7 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 
 	if (!isnull(varname)) {
 		new
+			bool:is_success,
 			length,
 			var_value[MAX_LANG_VALUE_STRING],
 			var_name[MAX_LANG_VAR_STRING + 6];
@@ -223,7 +224,7 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 			if (length != 0) {
 				FixAscii(var_value);
 				strcat(string, var_value, size);
-				return 1;
+
 			} else {
 				if (i == 0) {
 					strcat(string, "Error: multi lang value ", size);
@@ -233,6 +234,8 @@ stock Lang_GetMultiText(varname[], string[], size = sizeof(string))
 				break;
 			}
 		}
+
+		return _:is_success;
 	} else {
 		strcat(string, "Error: multi lang varname is null", size);
 	}
