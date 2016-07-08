@@ -1,5 +1,5 @@
 # zlang
-GVar lang system
+GVar per player lang system
 
 # Requirements
 - [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin)
@@ -20,19 +20,29 @@ MAX_LANG_MULTI_STRING | (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT) | no
 # Functions
 ```Pawn
 Lang_LoadText(filename[]);
+Lang_ReloadText(filename[], langid = INVALID_LANG_ID, bool:isreload = false);
+
 Lang_SetText(langid, varname[], value[]);
-Lang_GetText(langid, varname[], string[], size = sizeof(string));
-Lang_ReturnText(langid, varname[]);
-Lang_GetPlayerText(playerid, varname[], string[], size = sizeof(string)); // __(playerid, varname[], string[], size = sizeof(string))
-Lang_ReturnPlayerText(playerid, varname[]); // _(playerid, varname[])
-Lang_GetMultiText(langid, varname[], string[], size = sizeof(string));
-Lang_ReturnMultiText(langid, varname[]);
-Lang_GetPlayerMultiText(playerid, varname[], string[], size = sizeof(string)); // __m(playerid, varname[], string[], size = sizeof(string))
-Lang_ReturnPlayerMultiText(playerid, varname[]); // _m(playerid, varname[])
-Lang_IsTextExists(langid, varname[]);
 Lang_DeleteText(langid, varname[]);
+Lang_IsTextExists(langid, varname[]);
+Lang_ReturnText(langid, varname[]); // _l(langid, #varname)
+Lang_ReturnMultiText(langid, varname[]); // _lm(langid, #varname)
+Lang_GetText(langid, varname[], string[], size = sizeof(string)); // __l(langid, #varname, string[], size = sizeof(string))
+Lang_GetMultiText(langid, varname[], string[], size = sizeof(string)); // __lm(langid, #varname, string[], size = sizeof(string))
+
+Lang_SetDefaultLanguage(langid);
+Lang_GetDefaultLanguage();
+Lang_ReturnDefaultText(varname[]); // _d(#varname)
+Lang_ReturnDefaultMultiText(varname[]); // _dm(#varname)
+Lang_GetDefaultText(varname[], string[], size = sizeof(string)); // __d(#varname, string[], size = sizeof(string))
+Lang_GetDefaultMultiText(varname[], string[], size = sizeof(string)); // __dm(#varname, string[], size = sizeof(string))
+
 Lang_SetPlayerLanguage(playerid, langid);
 Lang_GetPlayerLanguage(playerid);
+Lang_ReturnPlayerText(playerid, varname[]); // _(playerid, #varname)
+Lang_ReturnPlayerMultiText(playerid, varname[]); // _m(playerid, #varname)
+Lang_GetPlayerText(playerid, varname[], string[], size = sizeof(string)); // __(playerid, #varname, string[], size = sizeof(string))
+Lang_GetPlayerMultiText(playerid, varname[], string[], size = sizeof(string)); // __m(playerid, #varname, string[], size = sizeof(string))
 ```
 
 # Example
@@ -41,28 +51,31 @@ Lang_GetPlayerLanguage(playerid);
 #include <gvar>
 #include <zlang>
 
+#define MAX_LANG_NAME 16
+
 enum e_LANG_INFO {
 	e_LANG_EN,
 	e_LANG_RU,
 }
 
 static
-	gLang[e_LANG_INFO];
+	gLang[e_LANG_INFO],
+	gLangName[e_LANG_INFO][MAX_LANG_NAME] = {
+		"en.ini",
+		"ru.ini"
+	};
 
 main() {}
 
 public OnGameModeInit()
 {
 	// load languages
-	gLang[e_LANG_EN] = Lang_LoadText("en.ini");
-	gLang[e_LANG_RU] = Lang_LoadText("ru.ini");
-	return 1;
-}
+	for (new e_LANG_INFO:lang; _:lang < sizeof(gLangName); _:lang++) {
+		gLang[lang] = Lang_LoadText(gLangName[lang]);
+	}
 
-public OnPlayerConnect(playerid)
-{
-	// set default language to english
-	Lang_SetPlayerLanguage(playerid, gLang[e_LANG_EN]);
+	// set default language to first (english)
+	Lang_SetDefaultLanguage(gLang[e_LANG_INFO:0]);
 	return 1;
 }
 

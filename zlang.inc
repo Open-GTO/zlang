@@ -1,6 +1,6 @@
 /*
 
-	About: GVar lang system
+	About: GVar per player lang system
 	Author: ziggi
 
 */
