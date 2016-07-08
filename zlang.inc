@@ -62,9 +62,18 @@
 #define INVALID_LANG_ID -1
 #define MAX_LANG_MULTI_STRING  (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT)
 
+#define _l(%0,%1) Lang_ReturnText(%0, #%1)
+#define _lm(%0,%1) Lang_ReturnMultiText(%0, #%1)
+#define __l(%0,%1,%2) Lang_GetText(%0, #%1, %2)
+#define __lm(%0,%1,%2) Lang_GetMultiText(%0, #%1, %2)
+
+#define _d(%1) Lang_ReturnDefaultText(#%1)
+#define _dm(%1) Lang_ReturnDefaultMultiText(#%1)
+#define __d(%1,%2) Lang_GetDefaultText(#%1, %2)
+#define __dm(%1,%2) Lang_GetDefaultMultiText(#%1, %2)
+
 #define _(%0,%1) Lang_ReturnPlayerText(%0, #%1)
 #define _m(%0,%1) Lang_ReturnPlayerMultiText(%0, #%1)
-
 #define __(%0,%1,%2) Lang_GetPlayerText(%0, #%1, %2)
 #define __m(%0,%1,%2) Lang_GetPlayerMultiText(%0, #%1, %2)
 
@@ -74,7 +83,8 @@
 
 static
 	gLangSlots[MAX_LANGS_COUNT char],
-	gPlayerLanguage[MAX_PLAYERS];
+	gPlayerLanguage[MAX_PLAYERS],
+	gDefaultLanguage = INVALID_LANG_ID;
 
 /*
 	isnull
@@ -98,11 +108,24 @@ stock Lang_LoadText(filename[])
 	}
 
 	langid = Lang_Add();
+	Lang_ReloadText(filename, langid);
+	Lang_SetLoadedStatus(langid, filename, true);
+	return langid;
+}
+
+stock Lang_ReloadText(filename[], langid = INVALID_LANG_ID, bool:isreload = false)
+{
+	if (langid == INVALID_LANG_ID) {
+		langid = Lang_GetLoadedId(filename);
+		if (langid == INVALID_LANG_ID) {
+			return 0;
+		}
+	}
 
 	new File:flang = fopen(filename, io_read);
 	if (!flang) {
 		printf("Error: no such language file '%s'", filename);
-		return INVALID_LANG_ID;
+		return 0;
 	}
 
 	new
@@ -127,7 +150,7 @@ stock Lang_LoadText(filename[])
 
 					strmid(varname, string, 0, i);
 
-					if (Lang_IsTextExists(langid, varname)) {
+					if (Lang_IsTextExists(langid, varname) && !isreload) {
 						printf("Error: duplicated variable name %s in language %d", varname, langid);
 						break;
 					}
@@ -167,9 +190,7 @@ stock Lang_LoadText(filename[])
 	}
 
 	fclose(flang);
-
-	Lang_SetLoadedStatus(langid, filename, true);
-	return langid;
+	return 1;
 }
 
 static stock Lang_IsLoaded(value[])
@@ -340,6 +361,48 @@ stock Lang_ReturnPlayerMultiText(playerid, varname[])
 	static string[MAX_LANG_MULTI_STRING];
 	Lang_GetMultiText(Lang_GetPlayerLanguage(playerid), varname, string);
 	return string;
+}
+
+/*
+	Default language functions
+*/
+
+stock Lang_GetDefaultText(varname[], string[], size = sizeof(string))
+{
+	return Lang_GetText(Lang_GetDefaultLanguage(), varname, string, size);
+}
+
+stock Lang_ReturnDefaultText(varname[])
+{
+	static string[MAX_LANG_VALUE_STRING];
+	Lang_GetDefaultText(varname, string);
+	return string;
+}
+
+stock Lang_GetDefaultMultiText(varname[], string[], size = sizeof(string))
+{
+	return Lang_GetMultiText(Lang_GetDefaultLanguage(), varname, string, size);
+}
+
+stock Lang_ReturnDefaultMultiText(varname[])
+{
+	static string[MAX_LANG_MULTI_STRING];
+	Lang_GetDefaultMultiText(Lang_GetDefaultLanguage(), varname, string);
+	return string;
+}
+
+stock Lang_GetDefaultLanguage()
+{
+	return gDefaultLanguage;
+}
+
+stock Lang_SetDefaultLanguage(langid)
+{
+	if (!Lang_IsActive(langid)) {
+		return 0;
+	}
+	gDefaultLanguage = langid;
+	return 1;
 }
 
 /*
