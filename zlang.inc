@@ -702,6 +702,39 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 
 #define Lang_ShowDialog(%0$%1) Lang_ShowDialog(%0#%1)
 
+stock Lang_GameText(playerid, time, style, var[], va_args<>)
+{
+	static
+		text[MAX_LANG_VALUE_STRING];
+
+	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
+	va_format(text, sizeof(text), text, va_start<4>);
+	return GameTextForPlayer(playerid, text, time, style);
+}
+
+#define Lang_GameText(%0$%1) Lang_GameText(%0#%1)
+
+stock Lang_GameTextForAll(time, style, var[], va_args<>)
+{
+	static
+		playerid,
+		text[MAX_LANG_VALUE_STRING];
+
+#if defined _FOREACH_LOCAL_VERSION
+	foreach (playerid : Player)
+#else
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--)
+#endif
+	{
+		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
+		va_format(text, sizeof(text), text, va_start<3>);
+		SendClientMessage(playerid, -1, text);
+	}
+	return GameTextForAll(text, time, style);
+}
+
+#define Lang_GameText(%0$%1) Lang_GameText(%0#%1)
+
 /*
 	Private functions
 */

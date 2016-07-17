@@ -51,51 +51,47 @@ Lang_GetPlayerMultiText(playerid, varname[], string[], size = sizeof(string)); /
 #include <gvar>
 #include <zlang>
 
-#define MAX_LANG_NAME 16
-
 enum e_LANG_INFO {
-	e_LANG_EN,
-	e_LANG_RU,
+	Lang:e_LANG_EN,
+	Lang:e_LANG_RU,
 }
 
 static
-	gLang[e_LANG_INFO],
-	gLangName[e_LANG_INFO][MAX_LANG_NAME] = {
-		"en.ini",
-		"ru.ini"
-	};
+	gLang[e_LANG_INFO];
 
 main() {}
 
 public OnGameModeInit()
 {
 	// load languages
-	for (new e_LANG_INFO:lang; _:lang < sizeof(gLangName); _:lang++) {
-		gLang[lang] = Lang_LoadText(gLangName[lang]);
-	}
+	gLang[e_LANG_RU] = Lang_Add("ru", "Russian");
+	gLang[e_LANG_EN] = Lang_Add("en", "English");
+
+	Lang_LoadFile(gLang[e_LANG_RU], "ru.ini");
+	Lang_LoadFile(gLang[e_LANG_EN], "en.ini");
 
 	// set default language to first (english)
-	Lang_SetDefaultLanguage(gLang[e_LANG_INFO:0]);
+	Lang_SetDefaultLanguage(gLang[e_LANG_EN]);
 	return 1;
 }
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
 	if (strcmp(cmdtext, "/ru", true) == 0) {
-		Lang_SetPlayerLanguage(playerid, gLang[e_LANG_RU]);
-		SendClientMessage(playerid, -1, _(playerid, LANGUAGE_CHANGED));
+		Lang_SetPlayerLang(playerid, gLang[e_LANG_RU]);
+		Lang_SendText(playerid, $LANGUAGE_CHANGED);
 		return 1;
 	}
 
 	if (strcmp(cmdtext, "/en", true) == 0) {
-		Lang_SetPlayerLanguage(playerid, gLang[e_LANG_EN]);
-		SendClientMessage(playerid, -1, _(playerid, LANGUAGE_CHANGED));
+		Lang_SetPlayerLang(playerid, gLang[e_LANG_EN]);
+		Lang_SendText(playerid, $LANGUAGE_CHANGED);
 		return 1;
 	}
 
 	if (strcmp(cmdtext, "/help", true) == 0) {
-		SendClientMessage(playerid, -1, _(playerid, HELLO_MSG));
-		SendClientMessage(playerid, -1, _(playerid, COMMANDS_LIST));
+		Lang_SendText(playerid, $HELLO_MSG);
+		Lang_SendText(playerid, $COMMANDS_LIST);
 		return 1;
 	}
 
