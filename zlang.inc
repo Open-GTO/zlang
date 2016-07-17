@@ -31,60 +31,42 @@
 	Defines
 */
 
-#if !defined MAX_MULTI_VAR_COUNT
-	#define MAX_MULTI_VAR_COUNT 10
+#if !defined MAX_LANGS
+	#define MAX_LANGS 2
 #endif
 
-#if !defined MAX_LANGS_COUNT
-	#define MAX_LANGS_COUNT 2
+#if !defined MAX_LANG_CODE
+	#define MAX_LANG_CODE 2
 #endif
 
-#if !defined ZLANG_GVAR_OFFSET
-	#define ZLANG_GVAR_OFFSET 1000
+#if !defined MAX_LANG_NAME
+	#define MAX_LANG_NAME 16
 #endif
 
-#if !defined MAX_LANG_VAR_STRING
-	#define MAX_LANG_VAR_STRING 64
-#endif
-
-#if !defined MAX_LANG_VALUE_STRING
-	#define MAX_LANG_VALUE_STRING 144
-#endif
-
-#if !defined ZLANG_FILENAME_VAR
-	#define ZLANG_FILENAME_VAR "zlang_langfile"
-#endif
-
-#if !defined ZLANG_MAX_FILENAME_PATH
-	#define ZLANG_MAX_FILENAME_PATH 256
+#if !defined MAX_LANG_FILENAME
+	#define MAX_LANG_FILENAME 256
 #endif
 
 #define INVALID_LANG_ID -1
-#define MAX_LANG_MULTI_STRING  (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT)
 
-#define _l(%0,%1) Lang_ReturnText(%0, #%1)
-#define _lm(%0,%1) Lang_ReturnMultiText(%0, #%1)
-#define __l(%0,%1,%2) Lang_GetText(%0, #%1, %2)
-#define __lm(%0,%1,%2) Lang_GetMultiText(%0, #%1, %2)
+/*
+	Enums
+*/
 
-#define _d(%1) Lang_ReturnDefaultText(#%1)
-#define _dm(%1) Lang_ReturnDefaultMultiText(#%1)
-#define __d(%1,%2) Lang_GetDefaultText(#%1, %2)
-#define __dm(%1,%2) Lang_GetDefaultMultiText(#%1, %2)
-
-#define _(%0,%1) Lang_ReturnPlayerText(%0, #%1)
-#define _m(%0,%1) Lang_ReturnPlayerMultiText(%0, #%1)
-#define __(%0,%1,%2) Lang_GetPlayerText(%0, #%1, %2)
-#define __m(%0,%1,%2) Lang_GetPlayerMultiText(%0, #%1, %2)
+enum e_LANG_INFO {
+	e_lCode[MAX_LANG_CODE + 1],
+	e_lName[MAX_LANG_NAME + 1],
+}
 
 /*
 	Vars
 */
 
 static
-	gLangSlots[MAX_LANGS_COUNT char],
-	gPlayerLanguage[MAX_PLAYERS],
-	gDefaultLanguage = INVALID_LANG_ID;
+	gLangInfo[MAX_LANGS][E_LANG_INFO],
+	gLangFiles[MAX_LANGS][MAX_LANG_FILES][MAX_LANG_FILENAME],
+	bool:gLangIsValid[MAX_LANGS],
+	Lang:gLangCount;
 
 /*
 	isnull
@@ -99,423 +81,188 @@ static
 	Loading functions
 */
 
-stock Lang_LoadText(filename[])
+stock Lang:Lang_Add(code[], name[])
 {
-	new langid = Lang_GetLoadedId(filename);
-	if (langid != INVALID_LANG_ID) {
-		Lang_SetActiveStatus(langid, true);
-		return langid;
-	}
-
-	langid = Lang_Add();
-	Lang_ReloadText(filename, langid);
-	Lang_SetLoadedStatus(langid, filename, true);
-	return langid;
-}
-
-stock Lang_ReloadText(filename[], langid = INVALID_LANG_ID, bool:isreload = false)
-{
-	if (langid == INVALID_LANG_ID) {
-		langid = Lang_GetLoadedId(filename);
-		if (langid == INVALID_LANG_ID) {
-			return 0;
-		}
-	}
-
-	new File:flang = fopen(filename, io_read);
-	if (!flang) {
-		printf("Error: no such language file '%s'", filename);
-		return 0;
-	}
-
-	new
-		i,
-		sep_pos,
-		varname[MAX_LANG_VAR_STRING + 1],
-		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1];
-
-	while (fread(flang, string, sizeof(string))) {
-		if (string[0] == '\0' || string[0] == '#' || string[0] == ';') {
-			continue;
-		}
-
-		sep_pos = -1;
-		for (i = 0; string[i] >= ' '; i++) {
-			if (sep_pos == -1) {
-				if (string[i] == ' ' && string[i + 1] == '=' && string[i + 2] == ' ') {
-					if (i > MAX_LANG_VAR_STRING) {
-						printf("Error: length of lang variable more than %d.", MAX_LANG_VAR_STRING);
-						printf("Error: %s", string);
-					}
-
-					strmid(varname, string, 0, i);
-
-					if (Lang_IsTextExists(langid, varname) && !isreload) {
-						printf("Error: duplicated variable name %s in language %d", varname, langid);
-						break;
-					}
-
-					sep_pos = i;
-				}
-			} else if (string[i] == '\\') {
-				switch (string[i + 1]) {
-					case 'n': {
-						strdel(string, i, i + 1);
-						string[i] = '\n';
-					}
-					case 't': {
-						strdel(string, i, i + 1);
-						string[i] = '\t';
-					}
-					case '%': {
-						strdel(string, i, i + 1);
-						strins(string, "%", i);
-					}
-					case 's': {
-						strdel(string, i, i + 1);
-						string[i] = ' ';
-					}
-					case '\\': {
-						strdel(string, i, i + 1);
-						string[i] = '\\';
-					}
-				}
-			}
-		}
-
-		if (sep_pos != -1) {
-			string[i] = '\0';
-			Lang_SetText(langid, varname, string[sep_pos + 3]);
-		}
-	}
-
-	fclose(flang);
-	return 1;
-}
-
-static stock Lang_IsLoaded(value[])
-{
-	return Lang_GetLoadedId(value) != INVALID_LANG_ID;
-}
-
-static stock Lang_GetLoadedId(value[])
-{
-	if (isnull(value)) {
+	if (isnull(code) || isnull(name)) {
 		return INVALID_LANG_ID;
 	}
 
 	new
-		langid,
-		langfile[ZLANG_MAX_FILENAME_PATH];
+		Lang:lang;
 
-	for (langid = 0; langid < MAX_LANGS_COUNT; langid++) {
-		if (Lang_IsActive(langid)) {
-			continue;
-		}
+	lang = Lang_Get(code);
 
-		GetGVarString(ZLANG_FILENAME_VAR, langfile, .id = langid + ZLANG_GVAR_OFFSET);
-
-		if (isnull(langfile)) {
-			continue;
-		}
-
-		if (strcmp(langfile, value, true) == 0) {
-			return langid;
-		}
+	if (lang == INVALID_LANG_ID) {
+		lang = _Lang_GetFreeSlot();
 	}
-	return INVALID_LANG_ID;
+
+	if (lang == INVALID_LANG_ID) {
+		return lang;
+	}
+
+	Lang_SetCode(lang, code);
+	Lang_SetName(lang, name);
+
+	gLangCount++;
+	return lang;
 }
 
-static stock Lang_SetLoadedStatus(langid, value[], bool:status)
+stock Lang_Remove(Lang:lang)
 {
-	if (status) {
-		SetGVarString(ZLANG_FILENAME_VAR, value, langid + ZLANG_GVAR_OFFSET);
-	} else {
-		DeleteGVar(ZLANG_FILENAME_VAR, langid + ZLANG_GVAR_OFFSET);
+	if (!Lang_IsValid(lang)) {
+		return 0;
 	}
+
+	Lang_SetCode(lang, "");
+	Lang_SetName(lang, "");
+
+	gLangIsValid[lang] = false;
+	gLangCount--;
+	return 1;
+}
+
+stock Lang_LoadFile(Lang:lang, filename[])
+{
+	if (!Lang_IsValid(lang)) {
+		return 0;
+	}
+
+	for (new fid = 0; fid < sizeof(gLangFiles[]); fid++) {
+		if (!strcmp(filename, gLangFiles[lang][fid], true)) {
+			return 0;
+		}
+	}
+
+	_Lang_strcpy(gLangFiles[lang][fid], filename, MAX_LANG_FILENAME);
+	return 1;
+}
+
+stock Lang_UnloadFile(Lang:lang, filename[])
+{
+
+}
+
+stock Lang_Reload(Lang:lang)
+{
+
+}
+
+stock Lang:Lang_Get(code[])
+{
+	new
+		Lang:lang = INVALID_LANG_ID;
+
+	for (new Lang:l; l < MAX_LANGS; l++) {
+		if (!strcmp(code, gLangInfo[l][e_lCode], true)) {
+			return l;
+		}
+	}
+
+	return lang;
+}
+
+stock Lang_SetName(lang, name[])
+{
+	return _Lang_strcpy(gLangInfo[lang][e_lName], name, MAX_LANG_NAME);
+}
+
+stock Lang_GetName(Lang:lang)
+{
+	return gLangInfo[lang][e_lName];
+}
+
+stock Lang_SetCode(Lang:lang, code[])
+{
+	return _Lang_strcpy(gLangInfo[lang][e_lCode], code, MAX_LANG_CODE);
+}
+
+stock Lang_GetCode(Lang:lang)
+{
+	return gLangInfo[lang][e_lCode];
+}
+
+stock bool:Lang_IsValid(Lang:lang)
+{
+	if (MAX_LANGS < _:lang < 0) {
+		return false;
+	}
+	return gLangIsValid[lang];
+}
+
+stock Lang_GetCount()
+{
+	return gLangCount;
+}
+
+stock Lang_SetPlayerLang(playerid, Lang:lang)
+{
+
+}
+
+stock Lang:Lang_GetPlayerLang(playerid)
+{
+
+}
+
+stock Lang:Lang_SetPlayerLangByCode(playerid, code[])
+{
+
 }
 
 /*
 	Text functions
 */
 
-stock Lang_SetText(langid, varname[], value[])
+stock _Lang_SetText(Lang:lang, var[], text[])
 {
-	if (isnull(varname)) {
-		return 0;
-	}
 
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	SetGVarString(varname, value, langid + ZLANG_GVAR_OFFSET);
-	return 1;
 }
 
-stock Lang_GetText(langid, varname[], string[], size = sizeof(string))
+stock _Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
 {
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
 
-	string[0] = '\0';
-
-	if (!isnull(varname)) {
-		new length = GetGVarString(varname, string, size, langid + ZLANG_GVAR_OFFSET);
-		if (length == 0) {
-			strcat(string, "Error: lang variable ", size);
-			strcat(string, varname, size);
-			strcat(string, " not found.", size);
-		} else {
-			return 1;
-		}
-	} else {
-		strcat(string, "Error: lang varname is null", size);
-	}
-	return 0;
 }
 
-stock Lang_ReturnText(langid, varname[])
+stock _Lang_SendTextToPlayers(players[], var[], {Float, _}:...)
 {
-	static string[MAX_LANG_VALUE_STRING];
-	Lang_GetText(langid, varname, string);
-	return string;
+
+}
+
+stock _Lang_SendTextToAll(var[], {Float, _}:...)
+{
+
+}
+
+stock _Lang_SendText(playerid, var[], {Float, _}:...)
+{
+
+}
+
+stock _Lang_ShowDialog(playerid, dialogid, style, caption[], info[], button1[], button2[], {Float, _}:...)
+{
+
 }
 
 /*
-	Player text functions
+	Private functions
 */
 
-stock Lang_GetPlayerText(playerid, varname[], string[], size = sizeof(string))
+static stock _Lang_GetFreeSlot()
 {
-	return Lang_GetText(Lang_GetPlayerLanguage(playerid), varname, string, size);
-}
+	new
+		Lang:lang = INVALID_LANG_ID;
 
-stock Lang_ReturnPlayerText(playerid, varname[])
-{
-	static string[MAX_LANG_VALUE_STRING];
-	Lang_GetText(Lang_GetPlayerLanguage(playerid), varname, string);
-	return string;
-}
-
-/*
-	Multi text functions
-*/
-
-stock Lang_GetMultiText(langid, varname[], string[], size = sizeof(string))
-{
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	string[0] = '\0';
-
-	if (!isnull(varname)) {
-		new
-			bool:is_success,
-			length,
-			var_value[MAX_LANG_VALUE_STRING],
-			var_name[MAX_LANG_VAR_STRING + 6];
-
-		for (new i = 0; i < MAX_MULTI_VAR_COUNT; i++) {
-			format(var_name, sizeof(var_name), "%s_%d", varname, i);
-			length = GetGVarString(var_name, var_value, sizeof(var_value), langid + ZLANG_GVAR_OFFSET);
-			if (length != 0) {
-				strcat(string, var_value, size);
-				is_success = true;
-			} else {
-				if (i == 0) {
-					strcat(string, "Error: multi lang value ", size);
-					strcat(string, varname, size);
-					strcat(string, " not found.", size);
-				}
-				break;
-			}
-		}
-		return _:is_success;
-	} else {
-		strcat(string, "Error: multi lang varname is null", size);
-	}
-	return 0;
-}
-
-stock Lang_ReturnMultiText(langid, varname[])
-{
-	static string[MAX_LANG_MULTI_STRING];
-	Lang_GetMultiText(langid, varname, string);
-	return string;
-}
-
-/*
-	Player multi text functions
-*/
-
-stock Lang_GetPlayerMultiText(playerid, varname[], string[], size = sizeof(string))
-{
-	return Lang_GetMultiText(Lang_GetPlayerLanguage(playerid), varname, string, size);
-}
-
-stock Lang_ReturnPlayerMultiText(playerid, varname[])
-{
-	static string[MAX_LANG_MULTI_STRING];
-	Lang_GetMultiText(Lang_GetPlayerLanguage(playerid), varname, string);
-	return string;
-}
-
-/*
-	Default language functions
-*/
-
-stock Lang_GetDefaultText(varname[], string[], size = sizeof(string))
-{
-	return Lang_GetText(Lang_GetDefaultLanguage(), varname, string, size);
-}
-
-stock Lang_ReturnDefaultText(varname[])
-{
-	static string[MAX_LANG_VALUE_STRING];
-	Lang_GetDefaultText(varname, string);
-	return string;
-}
-
-stock Lang_GetDefaultMultiText(varname[], string[], size = sizeof(string))
-{
-	return Lang_GetMultiText(Lang_GetDefaultLanguage(), varname, string, size);
-}
-
-stock Lang_ReturnDefaultMultiText(varname[])
-{
-	static string[MAX_LANG_MULTI_STRING];
-	Lang_GetDefaultMultiText(Lang_GetDefaultLanguage(), varname, string);
-	return string;
-}
-
-stock Lang_GetDefaultLanguage()
-{
-	return gDefaultLanguage;
-}
-
-stock Lang_SetDefaultLanguage(langid)
-{
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-	gDefaultLanguage = langid;
-	return 1;
-}
-
-/*
-	Other functions
-*/
-
-stock Lang_IsTextExists(langid, varname[])
-{
-	if (isnull(varname)) {
-		return 0;
-	}
-
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	if (GetGVarType(varname, langid + ZLANG_GVAR_OFFSET) != SERVER_VARTYPE_NONE) {
-		return 1;
-	}
-
-	return 0;
-}
-
-stock Lang_DeleteText(langid, varname[])
-{
-	if (isnull(varname)) {
-		return 0;
-	}
-
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	DeleteGVar(varname, langid + ZLANG_GVAR_OFFSET);
-	return 1;
-}
-
-/*
-	Player language functions
-*/
-
-stock Lang_SetPlayerLanguage(playerid, langid)
-{
-	if (MAX_PLAYERS <= playerid < 0 || !IsPlayerConnected(playerid)) {
-		return 0;
-	}
-
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	gPlayerLanguage[playerid] = langid;
-	return 1;
-}
-
-stock Lang_GetPlayerLanguage(playerid)
-{
-	if (MAX_PLAYERS <= playerid < 0 || !IsPlayerConnected(playerid)) {
-		return INVALID_LANG_ID;
-	}
-
-	return gPlayerLanguage[playerid];
-}
-
-/*
-	Language slot functions
-*/
-
-static stock Lang_Add()
-{
-	new langid = Lang_GetFreeSlot();
-	if (langid == INVALID_LANG_ID) {
-		return INVALID_LANG_ID;
-	}
-
-	Lang_SetActiveStatus(langid, true);
-	return langid;
-}
-
-static stock Lang_Remove(langid)
-{
-	if (!Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	Lang_SetActiveStatus(langid, false);
-	return 1;
-}
-
-static stock Lang_GetFreeSlot()
-{
-	for (new langid = 0; langid < MAX_LANGS_COUNT; langid++) {
-		if (!Lang_IsActive(langid)) {
-			return langid;
+	for (new Lang:l; l < MAX_LANGS; l++) {
+		if (!Lang_IsValid(l)) {
+			return l;
 		}
 	}
-	return INVALID_LANG_ID;
+
+	return lang;
 }
 
-static stock Lang_SetActiveStatus(langid, bool:status)
+static stock _Lang_strcpy(result[], source[], const size = sizeof(result))
 {
-	if (Lang_IsActive(langid)) {
-		return 0;
-	}
-
-	gLangSlots{langid} = _:status;
-	return 1;
-}
-
-static stock Lang_IsActive(langid)
-{
-	if (langid < 0 || langid >= MAX_LANGS_COUNT) {
-		return 0;
-	}
-	return gLangSlots{langid} == 1;
+	result[0] = 0;
+	return strcat(result, source, size);
 }
