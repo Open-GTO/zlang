@@ -76,6 +76,15 @@
 #endif
 
 /*
+	Define functions
+*/
+
+#if !defined isnull
+	#define isnull(%1) \
+				((!(%1[0])) || (((%1[0]) == '\1') && (!(%1[1]))))
+#endif
+
+/*
 	Enums
 */
 
@@ -107,15 +116,6 @@ static
 
 forward Lang:Lang_Get(code[]);
 forward Lang:_Lang_GetFreeSlot();
-
-/*
-	isnull
-*/
-
-#if !defined isnull
-	#define isnull(%1) \
-				((!(%1[0])) || (((%1[0]) == '\1') && (!(%1[1]))))
-#endif
 
 /*
 	OnGameModeExit
@@ -183,7 +183,7 @@ stock Lang_Remove(Lang:lang)
 
 	Lang_SetCode(lang, "");
 	Lang_SetName(lang, "");
-	
+
 	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
 		Lang_UnloadFile(lang, fid);
 	}
@@ -221,7 +221,10 @@ stock Lang_LoadFile(Lang:lang, filename[])
 		i,
 		sep_pos,
 		varname[MAX_LANG_VAR_STRING + 1],
-		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1];
+		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1],
+		idx,
+		symbol,
+		length;
 
 	while (fread(flang, string, sizeof(string))) {
 		switch (string[0]) {
@@ -259,8 +262,7 @@ stock Lang_LoadFile(Lang:lang, filename[])
 						string[i] = '\t';
 					}
 					case '%': {
-						strdel(string, i, i + 1);
-						strins(string, "%", i);
+						string[i] = '%';
 					}
 					case 's': {
 						strdel(string, i, i + 1);
@@ -269,6 +271,52 @@ stock Lang_LoadFile(Lang:lang, filename[])
 					case '\\': {
 						strdel(string, i, i + 1);
 						string[i] = '\\';
+					}
+					case '0'..'9': {
+						length = 0;
+						string[i] = 0;
+
+						do {
+							length++;
+						} while ('0' <= string[i + length + 1] <= '9');
+
+						for (idx = 1; idx <= length; idx++) {
+							string[i] += (string[i + idx] - '0') * _Lang_pow(10, length - idx);
+						}
+
+						strdel(string, i + 1, i + length + 1);
+					}
+					case 'x': {
+						length = 0;
+						string[i] = 0;
+
+						do {
+							length++;
+							symbol = string[i + length + 1];
+						} while (   '0' <= symbol <= '9'
+						         || 'A' <= symbol <= 'F'
+						         || 'a' <= symbol <= 'f');
+
+						for (idx = 1; idx <= length; idx++) {
+							symbol = string[i + idx];
+
+							if ('A' <= symbol <= 'F') {
+								symbol = 10 + (symbol - 'A');
+							} else if ('a' <= symbol <= 'f') {
+								symbol = 10 + (symbol - 'a');
+							} else if ('0' <= symbol <= '9') {
+								symbol = symbol - '0';
+							}
+
+							string[i] += symbol * _Lang_pow(16, length - idx);
+						}
+
+						// gvar is not support symbols with negative code
+						if (string[i] <= 0) {
+							string[i] = ' ';
+						}
+
+						strdel(string, i + 1, i + length + 1);
 					}
 				}
 			}
@@ -652,12 +700,6 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 	Private functions
 */
 
-static stock _Lang_strcpy(result[], source[], const size = sizeof(result))
-{
-	result[0] = 0;
-	return strcat(result, source, size);
-}
-
 static stock _Lang_FindFile(Lang:lang, filename[])
 {
 	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
@@ -708,7 +750,7 @@ static stock _Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
 		do {
 			format(var_multi, sizeof(var_multi), "%s_%d", var, i);
 			success = GetGVarString(var_multi, text_multi, sizeof(text_multi), LANG_VAR_OFFSET + _:lang);
-			
+
 			if (success) {
 				strcat(text, text_multi, size);
 				i++;
@@ -763,11 +805,25 @@ static stock _Lang_IsSlotHaveStatus(Lang:lang, status)
 }
 
 /*
-	YSI va
+	Other functions
 */
 
-#if !defined _INC_y_va
+static stock _Lang_strcpy(result[], source[], const size = sizeof(result))
+{
+	result[0] = 0;
+	return strcat(result, source, size);
+}
 
+static stock _Lang_pow(value, degree)
+{
+	new result = 1;
+	while (degree--) {
+		result *= value;
+	}
+	return result;
+}
+
+#if !defined _INC_y_va
 stock va_format(out[], size, const fmat[], va_:STATIC_ARGS)
 {
 	static
@@ -782,7 +838,7 @@ stock va_format(out[], size, const fmat[], va_:STATIC_ARGS)
 	#emit DEC.alt      // 2 - n
 	#emit SHL.C.alt    2
 	// "alt" now contains the number of static arguments in bytes - 4.
-	
+
 	// Get the previous parameter count.
 	#emit LOAD.S.pri   0
 	#emit ADD.C        8
@@ -790,37 +846,37 @@ stock va_format(out[], size, const fmat[], va_:STATIC_ARGS)
 	#emit SUB
 	#emit ADD.C        8
 	#emit STOR.pri     YSI_g_sArgCount // "format"s parameter count.
-	
+
 	// Get the address of the arguments we are replacing.
 	#emit LOAD.S.pri   0
 	#emit ADD
-	
+
 	// Copy them to our temporary buffer.
 	#emit CONST.alt    YSI_g_sArgs
 	#emit MOVS         16 // (n + 1) * 4
-	
+
 	// Go to the new "top" of the stack.
 	#emit STACK        0
 	#emit STOR.alt     YSI_g_sStack    // Store it.
 	#emit ADD.C        16 // (n + 1) * 4
 	#emit SCTRL        4
-	
+
 	// "frm" is still valid.
 	#emit PUSH.S       fmat
 	#emit PUSH.S       size
 	#emit PUSH.S       out
 	#emit PUSH         YSI_g_sArgCount // Push the parameter count.
-	
+
 	// Modify the heap to hold "locals".
 	#emit HEAP         0
 	#emit STOR.alt     YSI_g_sHeap
 	#emit LCTRL        4
 	#emit SCTRL        2
-	
+
 	// Call the function.
 	#emit SYSREQ.C     format
 	#emit STOR.pri     YSI_g_sArgCount
-	
+
 	// Copy the data back.
 	#emit LOAD.pri     YSI_g_sHeap
 	#emit SCTRL        2
@@ -829,11 +885,10 @@ stock va_format(out[], size, const fmat[], va_:STATIC_ARGS)
 	#emit MOVS         16
 	#emit LOAD.pri     YSI_g_sStack
 	#emit SCTRL        4
-	
+
 	#emit LOAD.pri     YSI_g_sArgCount
 	#emit RETN
-	
+
 	return 0;
 }
-
 #endif
