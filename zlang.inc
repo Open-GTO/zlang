@@ -185,7 +185,7 @@ stock Lang_Remove(Lang:lang)
 	Lang_SetName(lang, "");
 
 	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
-		Lang_UnloadFile(lang, fid);
+		Lang_UnloadFile(lang, .fid = fid);
 	}
 
 	_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
@@ -332,7 +332,7 @@ stock Lang_LoadFile(Lang:lang, filename[])
 	return fid;
 }
 
-stock Lang_UnloadFile(Lang:lang, fid = INVALID_LANG_FILE_ID, filename[] = "")
+stock Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
 {
 	if (fid == INVALID_LANG_FILE_ID) {
 		if (isnull(filename)) {
@@ -545,7 +545,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<
 	}
 
 	if (numargs() > 4) {
-		va_format(text, sizeof(text), text, va_start<4>);
+		va_format(text, size, text, va_start<4>);
 	}
 
 	return 1;
