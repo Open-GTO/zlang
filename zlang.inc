@@ -523,7 +523,7 @@ stock Lang_SetText(Lang:lang, var[], text[])
 	return _Lang_SetText(lang, var, text);
 }
 
-stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
+stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<>)
 {
 	if (!Lang_IsValid(lang)) {
 		return 0;
@@ -542,6 +542,10 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
 		strcat(text, var, size);
 		strcat(text, "' not found.", size);
 		return 0;
+	}
+
+	if (numargs() > 4) {
+		va_format(text, sizeof(text), text, va_start<4>);
 	}
 
 	return 1;
@@ -564,6 +568,8 @@ stock Lang_IsTextExists(Lang:lang, var[])
 
 	return _Lang_IsTextExists(lang, var);
 }
+
+#define Lang_GetPlayerText(%0,%1) Lang_GetText(Lang_GetPlayerLang(%0), %1)
 
 /*
 	Print functions
