@@ -695,7 +695,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 	Lang_GetText(lang, var_button1, button1);
 	Lang_GetText(lang, var_button2, button2);
 	Lang_GetText(lang, var_info, info);
-	va_format(info, sizeof(info), info, va_start<2>);
+	va_format(info, sizeof(info), info, va_start<7>);
 
 	return ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
 }
@@ -800,7 +800,7 @@ static stock _Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
 			return 1;
 		}
 	}
-	return 1;
+	return success;
 }
 
 static stock _Lang_RemoveText(Lang:lang, var[])
