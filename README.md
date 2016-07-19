@@ -79,19 +79,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 {
 	if (strcmp(cmdtext, "/ru", true) == 0) {
 		Lang_SetPlayerLang(playerid, gLang[e_LANG_RU]);
-		Lang_SendText(playerid, $LANGUAGE_CHANGED);
+		Lang_SendText(playerid, "LANGUAGE_CHANGED");
 		return 1;
 	}
 
 	if (strcmp(cmdtext, "/en", true) == 0) {
 		Lang_SetPlayerLang(playerid, gLang[e_LANG_EN]);
-		Lang_SendText(playerid, $LANGUAGE_CHANGED);
+		Lang_SendText(playerid, "LANGUAGE_CHANGED");
 		return 1;
 	}
 
 	if (strcmp(cmdtext, "/help", true) == 0) {
-		Lang_SendText(playerid, $HELLO_MSG);
-		Lang_SendText(playerid, $COMMANDS_LIST);
+		Lang_SendText(playerid, "HELLO_MSG");
+		Lang_SendText(playerid, "COMMANDS_LIST");
 		return 1;
 	}
 

@@ -588,8 +588,6 @@ stock Lang_printf(var[], va_args<>)
 	return success;
 }
 
-#define Lang_printf($%0) Lang_printf(#%0)
-
 stock Lang_printfex(Lang:lang, var[], va_args<>)
 {
 	static
@@ -613,8 +611,6 @@ stock Lang_print(var[], va_args<>)
 	print(text);
 	return success;
 }
-
-#define Lang_print($%0) Lang_print(#%0)
 
 stock Lang_printex(Lang:lang, var[])
 {
@@ -641,8 +637,6 @@ stock Lang_SendText(playerid, var[], va_args<>)
 	return SendClientMessage(playerid, -1, text);
 }
 
-#define Lang_SendText(%0$%1) Lang_SendText(%0#%1)
-
 stock Lang_SendTextToAll(var[], va_args<>)
 {
 	static
@@ -662,8 +656,6 @@ stock Lang_SendTextToAll(var[], va_args<>)
 	return 1;
 }
 
-#define Lang_SendTextToAll($%0) Lang_SendTextToAll(#%0)
-
 stock Lang_SendTextToPlayers(players[], var[], va_args<>)
 {
 	static
@@ -677,8 +669,6 @@ stock Lang_SendTextToPlayers(players[], var[], va_args<>)
 	}
 	return 1;
 }
-
-#define Lang_SendTextToPlayers(%0$%1) Lang_SendTextToPlayers(%0#%1)
 
 stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], va_args<>)
 {
@@ -700,8 +690,6 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 	return ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
 }
 
-#define Lang_ShowDialog(%0$%1) Lang_ShowDialog(%0#%1)
-
 stock Lang_GameText(playerid, time, style, var[], va_args<>)
 {
 	static
@@ -711,8 +699,6 @@ stock Lang_GameText(playerid, time, style, var[], va_args<>)
 	va_format(text, sizeof(text), text, va_start<4>);
 	return GameTextForPlayer(playerid, text, time, style);
 }
-
-#define Lang_GameText(%0$%1) Lang_GameText(%0#%1)
 
 stock Lang_GameTextForAll(time, style, var[], va_args<>)
 {
@@ -732,8 +718,6 @@ stock Lang_GameTextForAll(time, style, var[], va_args<>)
 	}
 	return GameTextForAll(text, time, style);
 }
-
-#define Lang_GameText(%0$%1) Lang_GameText(%0#%1)
 
 /*
 	Private functions
