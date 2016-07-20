@@ -442,7 +442,7 @@ stock Lang_GetCodes(const separator = '/', const bool:isuppercase = false)
 
 	sep[0] = separator;
 
-	for (lang; lang < MAX_LANGS; lang++) {
+	for (lang = 0; lang < MAX_LANGS; lang++) {
 		strcat(result, gLangInfo[lang][e_zlCode]);
 		strcat(result, sep);
 
