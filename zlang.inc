@@ -431,18 +431,28 @@ stock Lang_GetCode(Lang:lang)
 	return code;
 }
 
-stock Lang_GetCodes(const separator = '/')
+stock Lang_GetCodes(const separator = '/', const bool:isuppercase = false)
 {
 	new
+		lang,
+		i,
 		length,
 		result[(MAX_LANGS + 1) * (MAX_LANG_CODE + 1)],
 		sep[2];
 
 	sep[0] = separator;
 
-	for (new lang; lang < MAX_LANGS; lang++) {
+	for (lang; lang < MAX_LANGS; lang++) {
 		strcat(result, gLangInfo[lang][e_zlCode]);
 		strcat(result, sep);
+
+		for (i = (MAX_LANG_CODE + 1) * lang; i < (MAX_LANG_CODE + 1) * (lang + 1) - 1; i++) {
+			if (isuppercase) {
+				result[i] = toupper(result[i]);
+			} else {
+				result[i] = tolower(result[i]);
+			}
+		}
 	}
 
 	length = strlen(result);
