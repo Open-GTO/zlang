@@ -393,13 +393,20 @@ stock Lang_Reload(Lang:lang)
 	}
 }
 
-stock Lang:Lang_Get(code[])
+stock Lang:Lang_Get(code[] = "", name[] = "")
 {
 	new
-		Lang:lang = INVALID_LANG_ID;
+		Lang:lang = INVALID_LANG_ID,
+		is_code,
+		is_name;
+
+	is_code = strlen(code) != 0;
+	is_name = strlen(name) != 0;
 
 	for (new l; l < MAX_LANGS; l++) {
-		if (!strcmp(code, gLangInfo[l][e_zlCode], true)) {
+		if (is_code && !strcmp(code, gLangInfo[l][e_zlCode], true)) {
+			return Lang:l;
+		} else if (is_name && !strcmp(name, gLangInfo[l][e_zlName], true)) {
 			return Lang:l;
 		}
 	}
@@ -509,13 +516,24 @@ stock Lang:Lang_GetPlayerLang(playerid)
 
 stock Lang:Lang_SetPlayerLangByCode(playerid, code[])
 {
-	new lang = Lang_Get(code);
+	new Lang:lang = Lang_Get(code);
 	if (lang == INVALID_LANG_ID) {
 		return 0;
 	}
 
 	gPlayerLang[playerid] = lang;
-	return 1;
+	return lang;
+}
+
+stock Lang:Lang_SetPlayerLangByName(playerid, name[])
+{
+	new Lang:lang = Lang_Get(.name = name);
+	if (lang == INVALID_LANG_ID) {
+		return 0;
+	}
+
+	gPlayerLang[playerid] = lang;
+	return lang;
 }
 
 stock Lang_SetDefaultLang(Lang:lang)
