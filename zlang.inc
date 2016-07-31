@@ -245,7 +245,7 @@ stock Lang_LoadFile(Lang:lang, filename[])
 					strmid(varname, string, 0, i);
 
 					if (_Lang_IsTextExists(lang, varname)) {
-						printf("Error: duplicated variable name %s in language '%s'", varname, Lang_GetName(lang));
+						printf("Error: duplicated variable name %s in language '%s'", varname, Lang_ReturnName(lang));
 						break;
 					}
 
@@ -412,10 +412,15 @@ stock Lang_SetName(Lang:lang, name[])
 	return _Lang_strcpy(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME);
 }
 
-stock Lang_GetName(Lang:lang)
+stock Lang_GetName(Lang:lang, name[], const size = sizeof(name))
+{
+	_Lang_strcpy(name, gLangInfo[_:lang][e_zlName], size);
+}
+
+stock Lang_ReturnName(Lang:lang)
 {
 	new name[MAX_LANG_NAME];
-	strcat(name, gLangInfo[_:lang][e_zlName]);
+	Lang_GetName(lang, name);
 	return name;
 }
 
@@ -424,27 +429,32 @@ stock Lang_SetCode(Lang:lang, code[])
 	return _Lang_strcpy(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
 }
 
-stock Lang_GetCode(Lang:lang)
+stock Lang_GetCode(Lang:lang, code[], const size = sizeof(code))
+{
+	strcat(code, gLangInfo[_:lang][e_zlCode], size);
+}
+
+stock Lang_ReturnCode(Lang:lang)
 {
 	new code[MAX_LANG_CODE + 1];
-	strcat(code, gLangInfo[_:lang][e_zlCode]);
+	Lang_GetCode(lang, code);
 	return code;
 }
 
-stock Lang_GetCodes(const separator = '/', const bool:isuppercase = false)
+stock Lang_GetCodes(result[], const size = sizeof(result), const separator = '/', const bool:isuppercase = false)
 {
 	new
 		lang,
 		i,
 		length,
-		result[(MAX_LANGS + 1) * (MAX_LANG_CODE + 1)],
 		sep[2];
 
+	result[0] = '\0';
 	sep[0] = separator;
 
 	for (lang = 0; lang < MAX_LANGS; lang++) {
-		strcat(result, gLangInfo[lang][e_zlCode]);
-		strcat(result, sep);
+		strcat(result, gLangInfo[lang][e_zlCode], size);
+		strcat(result, sep, size);
 
 		for (i = (MAX_LANG_CODE + 1) * lang; i < (MAX_LANG_CODE + 1) * (lang + 1) - 1; i++) {
 			if (isuppercase) {
@@ -459,6 +469,13 @@ stock Lang_GetCodes(const separator = '/', const bool:isuppercase = false)
 	if (length != 0) {
 		result[length - 1] = '\0';
 	}
+	return result;
+}
+
+stock Lang_ReturnCodes(const separator = '/', const bool:isuppercase = false)
+{
+	new result[(MAX_LANGS + 1) * (MAX_LANG_CODE + 1)];
+	Lang_GetCodes(result, _, separator, isuppercase);
 	return result;
 }
 
