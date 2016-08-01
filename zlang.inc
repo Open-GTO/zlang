@@ -538,7 +538,6 @@ stock Lang_GetCodes(result[], const size = sizeof(result), const separator = '/'
 	if (length != 0) {
 		result[length - 1] = '\0';
 	}
-	return result;
 }
 
 stock Lang_ReturnCodes(const separator = '/', const bool:isuppercase = false)
