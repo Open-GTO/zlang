@@ -51,6 +51,10 @@
 	#define MAX_LANG_VALUE_STRING (144)
 #endif
 
+#if !defined MAX_LANG_SEPARATOR_STRING
+	#define MAX_LANG_SEPARATOR_STRING (64)
+#endif
+
 #if !defined MAX_LANG_MVALUE_STRING
 	#define MAX_LANG_MVALUE_STRING (MAX_LANG_VALUE_STRING * 25)
 #endif
@@ -250,9 +254,10 @@ stock Lang_LoadFile(Lang:lang, filename[])
 
 	new
 		i,
-		sep_pos,
+		sep_spos,
+		sep_epos,
 		varname[MAX_LANG_VAR_STRING + 1],
-		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1],
+		string[MAX_LANG_VAR_STRING + MAX_LANG_SEPARATOR_STRING + MAX_LANG_VALUE_STRING + 1],
 		idx,
 		symbol,
 		length;
@@ -264,25 +269,48 @@ stock Lang_LoadFile(Lang:lang, filename[])
 			}
 		}
 
-		sep_pos = -1;
-		for (i = 0; string[i] >= ' '; i++) {
-			if (sep_pos == -1) {
-				if (string[i] == ' ' && string[i + 1] == '=' && string[i + 2] == ' ') {
-					if (i > MAX_LANG_VAR_STRING) {
+		sep_spos = -1;
+		sep_epos = -1;
+
+		for (i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
+			if (sep_spos < 0 || sep_epos < 0) {
+				// get separator pos
+				if (sep_spos == -1) {
+					if (string[i] == ' ' || string[i] == '\t') {
+						sep_spos = i;
+					}
+				} else if (sep_epos == -1) {
+					if (string[i] == '=') {
+						sep_epos = -2;
+					}
+				} else if (sep_epos == -2) {
+					if (string[i] != ' ' && string[i] != '\t') {
+						sep_epos = i;
+					}
+				}
+
+				// if separator is found
+				if (sep_spos > 0 && sep_epos > 0) {
+					if ((sep_epos - sep_spos) > MAX_LANG_SEPARATOR_STRING) {
+						printf("Error: length of lang separator more than %d.", MAX_LANG_SEPARATOR_STRING);
+						printf("Error: %s", string);
+					}
+
+					if ((sep_spos - 1) > MAX_LANG_VAR_STRING) {
 						printf("Error: length of lang variable more than %d.", MAX_LANG_VAR_STRING);
 						printf("Error: %s", string);
 					}
 
-					strmid(varname, string, 0, i);
+					strmid(varname, string, 0, sep_spos);
 
 					if (_Lang_IsTextExists(lang, varname)) {
 						printf("Error: duplicated variable name %s in language '%s'", varname, Lang_ReturnName(lang));
 						break;
 					}
-
-					sep_pos = i;
 				}
-			} else if (string[i] == '\\') {
+			}
+
+			if (sep_spos > 0 && sep_epos > 0 && string[i] == '\\') {
 				switch (string[i + 1]) {
 					case 'n': {
 						strdel(string, i, i + 1);
@@ -343,7 +371,7 @@ stock Lang_LoadFile(Lang:lang, filename[])
 						}
 
 						// gvar is not support symbols with negative code
-						if (string[i] <= 0) {
+						if (string[i] < 0) {
 							string[i] = ' ';
 						}
 
@@ -353,9 +381,9 @@ stock Lang_LoadFile(Lang:lang, filename[])
 			}
 		}
 
-		if (sep_pos != -1) {
+		if (sep_spos > 0 && sep_epos > 0) {
 			string[i] = '\0';
-			_Lang_SetText(lang, varname, string[sep_pos + 3]);
+			_Lang_SetText(lang, varname, string[sep_epos]);
 		}
 	}
 
@@ -385,7 +413,7 @@ stock Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
 
 	new
 		sep_pos,
-		string[MAX_LANG_VAR_STRING + 3 + MAX_LANG_VALUE_STRING + 1];
+		string[MAX_LANG_VAR_STRING + MAX_LANG_SEPARATOR_STRING + MAX_LANG_VALUE_STRING + 1];
 
 	while (fread(flang, string, sizeof(string))) {
 		switch (string[0]) {
@@ -394,9 +422,12 @@ stock Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
 			}
 		}
 
-		sep_pos = strfind(string, " = ");
+		sep_pos = strfind(string, " ");
 		if (sep_pos == -1) {
-			continue;
+			sep_pos = strfind(string, "\t");
+			if (sep_pos == -1) {
+				continue;
+			}
 		}
 
 		strmid(string, string, 0, sep_pos);
@@ -601,22 +632,19 @@ stock Lang_SetText(Lang:lang, var[], text[])
 
 stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<>)
 {
-	text[0] = '\0';
-
 	if (!Lang_IsValid(lang)) {
-		strcat(text, "Error: lang is invalid. Var '", size);
-		strcat(text, var, size);
-		strcat(text, "' is not found.", size);
+		_Lang_strcpy(text, "Error: lang is invalid.", size);
 		return 0;
 	}
 
 	if (isnull(var)) {
-		strcat(text, "Error: lang var is null", size);
+		_Lang_strcpy(text, "Error: lang var is null.", size);
 		return 0;
 	}
 
 	new success = _Lang_GetText(lang, var, text, size);
 	if (!success) {
+		text[0] = '\0';
 		strcat(text, "Error: lang var '", size);
 		strcat(text, var, size);
 		strcat(text, "' is not found.", size);
@@ -659,7 +687,7 @@ stock Lang_IsTextExists(Lang:lang, var[])
 stock Lang_printf(var[], va_args<>)
 {
 	static
-		text[MAX_LANG_VALUE_STRING],
+		text[MAX_LANG_MVALUE_STRING],
 		success;
 
 	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
@@ -671,7 +699,7 @@ stock Lang_printf(var[], va_args<>)
 stock Lang_printfex(Lang:lang, var[], va_args<>)
 {
 	static
-		text[MAX_LANG_VALUE_STRING],
+		text[MAX_LANG_MVALUE_STRING],
 		success;
 
 	success = Lang_GetText(lang, var, text);
@@ -684,7 +712,7 @@ stock Lang_printfex(Lang:lang, var[], va_args<>)
 stock Lang_print(var[], va_args<>)
 {
 	static
-		text[MAX_LANG_VALUE_STRING],
+		text[MAX_LANG_MVALUE_STRING],
 		success;
 
 	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
@@ -695,7 +723,7 @@ stock Lang_print(var[], va_args<>)
 stock Lang_printex(Lang:lang, var[])
 {
 	new
-		text[MAX_LANG_VALUE_STRING],
+		text[MAX_LANG_MVALUE_STRING],
 		success;
 
 	success = Lang_GetText(lang, var, text);
@@ -757,7 +785,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 		caption[MAX_LANG_VALUE_STRING],
 		button1[MAX_LANG_VALUE_STRING],
 		button2[MAX_LANG_VALUE_STRING],
-		info[MAX_LANG_VALUE_STRING];
+		info[MAX_LANG_MVALUE_STRING];
 
 	lang = Lang_GetPlayerLang(playerid);
 
@@ -855,6 +883,10 @@ static stock _Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
 			success = GetGVarString(var_multi, text_multi, sizeof(text_multi), LANG_VAR_OFFSET + _:lang);
 
 			if (success) {
+				if (i == 0) {
+					text[0] = '\0';
+				}
+
 				strcat(text, text_multi, size);
 				i++;
 			}
