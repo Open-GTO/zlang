@@ -114,7 +114,7 @@ static
 	Forwards
 */
 
-forward Lang:Lang_Get(code[]);
+forward Lang:Lang_Get(code[] = "", name[] = "");
 forward Lang:_Lang_GetFreeSlot();
 
 /*
