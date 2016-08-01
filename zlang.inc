@@ -51,6 +51,10 @@
 	#define MAX_LANG_VALUE_STRING (144)
 #endif
 
+#if !defined MAX_LANG_MVALUE_STRING
+	#define MAX_LANG_MVALUE_STRING (MAX_LANG_VALUE_STRING * 25)
+#endif
+
 #if !defined MAX_LANG_CODE
 	#define MAX_LANG_CODE (2)
 #endif
@@ -118,6 +122,33 @@ forward Lang:Lang_Get(code[] = "", name[] = "");
 forward Lang:_Lang_GetFreeSlot();
 
 /*
+	OnGameModeInit
+*/
+
+public OnGameModeInit()
+{
+	for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
+		_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
+	}
+
+	#if defined ZLANG_OnGameModeInit
+		return ZLANG_OnGameModeInit();
+	#else
+		return 1;
+	#endif
+}
+#if defined _ALS_OnGameModeInit
+	#undef OnGameModeInit
+#else
+	#define _ALS_OnGameModeInit
+#endif
+
+#define OnGameModeInit ZLANG_OnGameModeInit
+#if defined ZLANG_OnGameModeInit
+	forward ZLANG_OnGameModeInit();
+#endif
+
+/*
 	OnGameModeExit
 */
 
@@ -157,14 +188,14 @@ stock Lang:Lang_Add(code[], name[])
 	new
 		Lang:lang;
 
-	lang = Lang_Get(code);
+	lang = Lang_Get(code, name);
 
 	if (lang == INVALID_LANG_ID) {
 		lang = _Lang_GetFreeSlot();
 	}
 
 	if (lang == INVALID_LANG_ID) {
-		return lang;
+		return INVALID_LANG_ID;
 	}
 
 	Lang_SetCode(lang, code);
@@ -488,7 +519,7 @@ stock Lang_ReturnCodes(const separator = '/', const bool:isuppercase = false)
 
 stock Lang_IsValid(Lang:lang)
 {
-	if (MAX_LANGS <= _:lang < 0) {
+	if (_:lang < 0 || _:lang >= MAX_LANGS) {
 		return 0;
 	}
 	return _Lang_IsSlotHaveStatus(lang, LANG_SLOT_BUSY);
@@ -570,11 +601,14 @@ stock Lang_SetText(Lang:lang, var[], text[])
 
 stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<>)
 {
+	text[0] = '\0';
+
 	if (!Lang_IsValid(lang)) {
+		strcat(text, "Error: lang is invalid. Var '", size);
+		strcat(text, var, size);
+		strcat(text, "' is not found.", size);
 		return 0;
 	}
-
-	text[0] = '\0';
 
 	if (isnull(var)) {
 		strcat(text, "Error: lang var is null", size);
@@ -585,7 +619,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<
 	if (!success) {
 		strcat(text, "Error: lang var '", size);
 		strcat(text, var, size);
-		strcat(text, "' not found.", size);
+		strcat(text, "' is not found.", size);
 		return 0;
 	}
 
