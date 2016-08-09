@@ -641,7 +641,10 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<
 		return 0;
 	}
 
-	new success = _Lang_GetText(lang, var, text, size);
+	static
+		temp[MAX_LANG_MVALUE_STRING];
+
+	new success = _Lang_GetText(lang, var, temp);
 	if (!success) {
 		text[0] = '\0';
 		strcat(text, "Error: lang var '", size);
@@ -651,7 +654,9 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<
 	}
 
 	if (numargs() > 4) {
-		va_format(text, size, text, va_start<4>);
+		va_format(text, size, temp, va_start<4>);
+	} else {
+		_Lang_strcpy(text, temp, size);
 	}
 
 	return 1;
