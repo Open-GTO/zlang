@@ -3,46 +3,212 @@ GVar per player lang system
 
 # Requirements
 - [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin)
+- [foreach](https://github.com/karimcambridge/SAMP-foreach) - not necessary but recommended
+
+# Libraries compatible with zlang
+- [mdialog](https://github.com/Open-GTO/mdialog) - new look for Dialog_Open, Dialog_Message and Dialog_MessageEx functions.
 
 # Defines
 Directive | Default value | Can be redefined
 ----------|---------------|------------
-MAX_MULTI_VAR_COUNT | 10 | yes
-MAX_LANGS_COUNT | 2 | yes
-ZLANG_GVAR_OFFSET | 1000 | yes
+MAX_LANGS | 2 | yes
+LANG_VAR_OFFSET | 1000 | yes
+LANG_IGNORED_FIRST_SYMBOL | '\0', '#', ';' | yes
 MAX_LANG_VAR_STRING | 64 | yes
 MAX_LANG_VALUE_STRING | 144 | yes
-ZLANG_FILENAME_VAR | "zlang_langfile" | yes
-ZLANG_MAX_FILENAME_PATH | 256 | yes
-INVALID_LANG_ID | -1 | no
-MAX_LANG_MULTI_STRING | (MAX_LANG_VALUE_STRING * MAX_MULTI_VAR_COUNT) | no
+MAX_LANG_SEPARATOR_STRING | 64 | yes
+MAX_LANG_MVALUE_STRING | MAX_LANG_VALUE_STRING * 25 | yes
+MAX_LANG_CODE | 2 | yes
+MAX_LANG_NAME | 16 | yes
+MAX_LANG_FILES | 5 | yes
+MAX_LANG_FILENAME | 256 | yes
+INVALID_LANG_ID | Lang:-1 | no
+INVALID_LANG_FILE_ID | -1 | no
 
 # Functions
+#### Add language
 ```Pawn
-Lang_LoadText(filename[]);
-Lang_ReloadText(filename[], langid = INVALID_LANG_ID, bool:isreload = false);
+Lang:Lang_Add(code[], name[])
+```
 
-Lang_SetText(langid, varname[], value[]);
-Lang_DeleteText(langid, varname[]);
-Lang_IsTextExists(langid, varname[]);
-Lang_ReturnText(langid, varname[]); // _l(langid, #varname)
-Lang_ReturnMultiText(langid, varname[]); // _lm(langid, #varname)
-Lang_GetText(langid, varname[], string[], size = sizeof(string)); // __l(langid, #varname, string[], size = sizeof(string))
-Lang_GetMultiText(langid, varname[], string[], size = sizeof(string)); // __lm(langid, #varname, string[], size = sizeof(string))
+#### Remove language
+```Pawn
+Lang_Remove(Lang:lang)
+```
 
-Lang_SetDefaultLanguage(langid);
-Lang_GetDefaultLanguage();
-Lang_ReturnDefaultText(varname[]); // _d(#varname)
-Lang_ReturnDefaultMultiText(varname[]); // _dm(#varname)
-Lang_GetDefaultText(varname[], string[], size = sizeof(string)); // __d(#varname, string[], size = sizeof(string))
-Lang_GetDefaultMultiText(varname[], string[], size = sizeof(string)); // __dm(#varname, string[], size = sizeof(string))
+#### Load language file
+```Pawn
+Lang_LoadFile(Lang:lang, filename[])
+```
 
-Lang_SetPlayerLanguage(playerid, langid);
-Lang_GetPlayerLanguage(playerid);
-Lang_ReturnPlayerText(playerid, varname[]); // _(playerid, #varname)
-Lang_ReturnPlayerMultiText(playerid, varname[]); // _m(playerid, #varname)
-Lang_GetPlayerText(playerid, varname[], string[], size = sizeof(string)); // __(playerid, #varname, string[], size = sizeof(string))
-Lang_GetPlayerMultiText(playerid, varname[], string[], size = sizeof(string)); // __m(playerid, #varname, string[], size = sizeof(string))
+#### Unload language file
+```Pawn
+Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
+```
+
+#### Reload all language files
+```Pawn
+Lang_Reload(Lang:lang)
+```
+
+#### Get language id by *code* or *name*
+```Pawn
+Lang:Lang_Get(code[] = "", name[] = "")
+```
+
+#### Set language name
+```Pawn
+Lang_SetName(Lang:lang, name[])
+```
+
+#### Get language name
+```Pawn
+Lang_GetName(Lang:lang, name[], const size = sizeof(name))
+```
+
+#### Get language name and return it
+```Pawn
+Lang_ReturnName(Lang:lang)
+```
+
+#### Set language code
+```Pawn
+Lang_SetCode(Lang:lang, code[])
+```
+
+#### Get language code
+```Pawn
+Lang_GetCode(Lang:lang, code[], const size = sizeof(code))
+```
+
+#### Get language code and return it
+```Pawn
+Lang_ReturnCode(Lang:lang)
+```
+
+#### Get language codes string
+```Pawn
+Lang_GetCodes(result[], const size = sizeof(result), const separator = '/', const bool:isuppercase = false)
+```
+
+#### Get language codes string and return it
+```Pawn
+Lang_ReturnCodes(const separator = '/', const bool:isuppercase = false)
+```
+
+#### Check language on valid
+```Pawn
+Lang_IsValid(Lang:lang)
+```
+
+#### Get languages count
+```Pawn
+Lang_GetCount()
+```
+
+#### Set player language
+```Pawn
+Lang_SetPlayerLang(playerid, Lang:lang)
+```
+
+#### Get player language
+```Pawn
+Lang:Lang_GetPlayerLang(playerid)
+```
+
+#### Set player language by code
+```Pawn
+Lang:Lang_SetPlayerLangByCode(playerid, code[])
+```
+
+#### Set player language by name
+```Pawn
+Lang:Lang_SetPlayerLangByName(playerid, name[])
+```
+
+#### Set default server language
+```Pawn
+Lang_SetDefaultLang(Lang:lang)
+```
+
+#### Get default server language
+```Pawn
+Lang_GetDefaultLang()
+```
+
+#### Get language text
+```Pawn
+Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<>)
+```
+
+#### Get player language text
+```Pawn
+Lang_GetPlayerText(playerid, var[], text[], const size = sizeof(text), va_args<>)
+```
+
+#### Get default language text
+```Pawn
+Lang_GetDefaultText(var[], text[], const size = sizeof(text), va_args<>)
+```
+
+#### Remove language text
+```Pawn
+Lang_RemoveText(Lang:lang, var[])
+```
+
+#### Is language text exists
+```Pawn
+Lang_IsTextExists(Lang:lang, var[])
+```
+
+#### Language printf function with default language
+```Pawn
+Lang_printf(var[], va_args<>)
+```
+
+#### Language printf function with specific language
+```Pawn
+Lang_printfex(Lang:lang, var[], va_args<>)
+```
+
+#### Language print function with default language
+```Pawn
+Lang_print(var[], va_args<>)
+```
+
+#### Language print function with specific language
+```Pawn
+Lang_printex(Lang:lang, var[])
+```
+
+#### Send language text to player
+```Pawn
+Lang_SendText(playerid, var[], va_args<>)
+```
+
+#### Send language text to all players
+```Pawn
+Lang_SendTextToAll(var[], va_args<>)
+```
+
+#### Send language text to all players in array
+```Pawn
+Lang_SendTextToPlayers(players[], var[], va_args<>)
+```
+
+#### Show language dialog to player
+```Pawn
+Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], va_args<>)
+```
+
+#### Show language game text to player
+```Pawn
+Lang_GameText(playerid, time, style, var[], va_args<>)
+```
+
+#### Show language game text to all players
+```Pawn
+Lang_GameTextForAll(time, style, var[], va_args<>)
 ```
 
 # Example
@@ -70,26 +236,26 @@ public OnGameModeInit()
 	Lang_LoadFile(gLang[e_LANG_RU], "ru.ini");
 	Lang_LoadFile(gLang[e_LANG_EN], "en.ini");
 
-	// set default language to first (english)
+	// set english as the default language
 	Lang_SetDefaultLanguage(gLang[e_LANG_EN]);
 	return 1;
 }
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-	if (strcmp(cmdtext, "/ru", true) == 0) {
+	if (strcmp(cmdtext, "/ru", true, 3) == 0) {
 		Lang_SetPlayerLang(playerid, gLang[e_LANG_RU]);
 		Lang_SendText(playerid, "LANGUAGE_CHANGED");
 		return 1;
 	}
 
-	if (strcmp(cmdtext, "/en", true) == 0) {
+	if (strcmp(cmdtext, "/en", true, 3) == 0) {
 		Lang_SetPlayerLang(playerid, gLang[e_LANG_EN]);
 		Lang_SendText(playerid, "LANGUAGE_CHANGED");
 		return 1;
 	}
 
-	if (strcmp(cmdtext, "/help", true) == 0) {
+	if (strcmp(cmdtext, "/help", true, 5) == 0) {
 		Lang_SendText(playerid, "HELLO_MSG");
 		Lang_SendText(playerid, "COMMANDS_LIST");
 		return 1;
@@ -103,12 +269,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 ```ini
 LANGUAGE_CHANGED = Now you are using english language.
 HELLO_MSG = Hello, World!
-COMMANDS_LIST = Commands: /help, /level, /report
+COMMANDS_LIST = Commands: /help, /en, /ru
 ```
 
 **scriptfiles/ru.ini:**
 ```ini
 LANGUAGE_CHANGED = Теперь вы используете русский язык.
 HELLO_MSG = Привет, Мир!
-COMMANDS_LIST = Команды: /help, /level, /report
+COMMANDS_LIST = Команды: /help, /en, /ru
 ```
