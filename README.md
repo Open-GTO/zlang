@@ -138,17 +138,17 @@ Lang_GetDefaultLang()
 
 #### Get language text
 ```Pawn
-Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<>)
+Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), {Float, _}:...)
 ```
 
 #### Get player language text
 ```Pawn
-Lang_GetPlayerText(playerid, var[], text[], const size = sizeof(text), va_args<>)
+Lang_GetPlayerText(playerid, var[], text[], const size = sizeof(text), {Float, _}:...)
 ```
 
 #### Get default language text
 ```Pawn
-Lang_GetDefaultText(var[], text[], const size = sizeof(text), va_args<>)
+Lang_GetDefaultText(var[], text[], const size = sizeof(text), {Float, _}:...)
 ```
 
 #### Remove language text
@@ -163,17 +163,17 @@ Lang_IsTextExists(Lang:lang, var[])
 
 #### Language printf function with default language
 ```Pawn
-Lang_printf(var[], va_args<>)
+Lang_printf(var[], {Float, _}:...)
 ```
 
 #### Language printf function with specific language
 ```Pawn
-Lang_printfex(Lang:lang, var[], va_args<>)
+Lang_printfex(Lang:lang, var[], {Float, _}:...)
 ```
 
 #### Language print function with default language
 ```Pawn
-Lang_print(var[], va_args<>)
+Lang_print(var[], {Float, _}:...)
 ```
 
 #### Language print function with specific language
@@ -183,32 +183,32 @@ Lang_printex(Lang:lang, var[])
 
 #### Send language text to player
 ```Pawn
-Lang_SendText(playerid, var[], va_args<>)
+Lang_SendText(playerid, var[], {Float, _}:...)
 ```
 
 #### Send language text to all players
 ```Pawn
-Lang_SendTextToAll(var[], va_args<>)
+Lang_SendTextToAll(var[], {Float, _}:...)
 ```
 
 #### Send language text to all players in array
 ```Pawn
-Lang_SendTextToPlayers(players[], var[], va_args<>)
+Lang_SendTextToPlayers(players[], var[], {Float, _}:...)
 ```
 
 #### Show language dialog to player
 ```Pawn
-Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], va_args<>)
+Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], {Float, _}:...)
 ```
 
 #### Show language game text to player
 ```Pawn
-Lang_GameText(playerid, time, style, var[], va_args<>)
+Lang_GameText(playerid, time, style, var[], {Float, _}:...)
 ```
 
 #### Show language game text to all players
 ```Pawn
-Lang_GameTextForAll(time, style, var[], va_args<>)
+Lang_GameTextForAll(time, style, var[], {Float, _}:...)
 ```
 
 # Language file format
