@@ -211,6 +211,9 @@ Lang_GameText(playerid, time, style, var[], va_args<>)
 Lang_GameTextForAll(time, style, var[], va_args<>)
 ```
 
+# Language file format
+Language file format is a standard INI file format (without sections). It supports a variety of special characters, such as \n, \t, \%, \s, \\, \<value>, \x<hex>.
+
 # Example
 ```Pawn
 #include <a_samp>
