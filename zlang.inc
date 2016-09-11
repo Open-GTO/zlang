@@ -726,7 +726,7 @@ stock Lang_print(var[], va_args<>)
 
 stock Lang_printex(Lang:lang, var[])
 {
-	static
+	new
 		text[MAX_LANG_MVALUE_STRING],
 		success;
 
@@ -755,7 +755,7 @@ stock Lang_SendTextToAll(var[], va_args<>)
 		playerid,
 		text[MAX_LANG_VALUE_STRING];
 
-#if defined _FOREACH_LOCAL_VERSION
+#if defined foreach
 	foreach (playerid : Player)
 #else
 	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--)
@@ -818,7 +818,7 @@ stock Lang_GameTextForAll(time, style, var[], va_args<>)
 		playerid,
 		text[MAX_LANG_VALUE_STRING];
 
-#if defined _FOREACH_LOCAL_VERSION
+#if defined foreach
 	foreach (playerid : Player)
 #else
 	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--)
