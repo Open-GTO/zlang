@@ -756,11 +756,13 @@ stock Lang_SendTextToAll(var[], va_args<>)
 		text[MAX_LANG_VALUE_STRING];
 
 #if defined foreach
-	foreach (playerid : Player)
+	foreach (playerid : Player) {
 #else
-	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--)
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
+		if (!IsPlayerConnected(playerid)) {
+			continue;
+		}
 #endif
-	{
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
 		va_format(text, sizeof(text), text, va_start<1>);
 		SendClientMessage(playerid, -1, text);
@@ -819,11 +821,13 @@ stock Lang_GameTextForAll(time, style, var[], va_args<>)
 		text[MAX_LANG_VALUE_STRING];
 
 #if defined foreach
-	foreach (playerid : Player)
+	foreach (playerid : Player) {
 #else
-	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--)
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
+		if (!IsPlayerConnected(playerid)) {
+			continue;
+		}
 #endif
-	{
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
 		va_format(text, sizeof(text), text, va_start<3>);
 		SendClientMessage(playerid, -1, text);
