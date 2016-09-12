@@ -726,7 +726,7 @@ stock Lang_print(var[], va_args<>)
 
 stock Lang_printex(Lang:lang, var[])
 {
-	new
+	static
 		text[MAX_LANG_MVALUE_STRING],
 		success;
 
