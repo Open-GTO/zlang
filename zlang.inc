@@ -776,7 +776,7 @@ stock Lang_SendTextToPlayers(players[], var[], va_args<>)
 		idx,
 		text[MAX_LANG_VALUE_STRING];
 
-	for ( ; players[idx] != INVALID_PLAYER_ID; idx++) {
+	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
 		Lang_GetText(Lang_GetPlayerLang(players[idx]), var, text);
 		va_format(text, sizeof(text), text, va_start<2>);
 		SendClientMessage(players[idx], -1, text);
