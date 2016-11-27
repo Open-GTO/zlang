@@ -3,7 +3,7 @@ GVar per player lang system
 
 # Requirements
 - [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin)
-- [foreach](https://github.com/karimcambridge/SAMP-foreach) - not necessary but recommended
+- [foreach](https://github.com/Open-GTO/foreach) - not necessary but recommended
 
 # Libraries compatible with zlang
 - [mdialog](https://github.com/Open-GTO/mdialog) - new look for Dialog_Open, Dialog_Message and Dialog_MessageEx functions.
