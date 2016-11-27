@@ -212,7 +212,7 @@ Lang_GameTextForAll(time, style, var[], {Float, _}:...)
 ```
 
 # Language file format
-Language file format is a standard INI file format (without sections). It supports a variety of special characters, such as \n, \t, \%, \s, \\, \<value>, \x<hex>.
+Language file format is a standard INI file format (without sections). It supports a variety of special characters, such as \n, \t, \%, \s, \\\\, \\\<value\>, \x\<hex\>.
 
 # Example
 ```Pawn
