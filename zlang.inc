@@ -914,7 +914,7 @@ static stock _Lang_RemoveText(Lang:lang, var[])
 
 static stock _Lang_IsTextExists(Lang:lang, var[])
 {
-	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != SERVER_VARTYPE_NONE;
+	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
 }
 
 /*
