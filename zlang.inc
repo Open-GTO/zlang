@@ -797,7 +797,9 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 
 	Lang_GetText(lang, var_caption, caption);
 	Lang_GetText(lang, var_button1, button1);
-	Lang_GetText(lang, var_button2, button2);
+	if (!isnull(var_button2)) {
+		Lang_GetText(lang, var_button2, button2);
+	}
 	Lang_GetText(lang, var_info, info);
 	va_format(info, sizeof(info), info, va_start<7>);
 
