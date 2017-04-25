@@ -59,6 +59,14 @@
 	#define MAX_LANG_MVALUE_STRING (MAX_LANG_VALUE_STRING * 25)
 #endif
 
+#if !defined MAX_LANG_FORMAT_STRING
+	#define MAX_LANG_FORMAT_STRING (MAX_LANG_VALUE_STRING)
+#endif
+
+#if !defined MAX_LANG_MFORMAT_STRING
+	#define MAX_LANG_MFORMAT_STRING (MAX_LANG_MVALUE_STRING)
+#endif
+
 #if !defined MAX_LANG_CODE
 	#define MAX_LANG_CODE (2)
 #endif
@@ -642,7 +650,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<
 	}
 
 	static
-		temp[MAX_LANG_MVALUE_STRING];
+		temp[MAX_LANG_MFORMAT_STRING];
 
 	new success = _Lang_GetText(lang, var, temp);
 	if (!success) {
@@ -691,7 +699,7 @@ stock Lang_IsTextExists(Lang:lang, var[])
 stock Lang_printf(var[], va_args<>)
 {
 	static
-		text[MAX_LANG_MVALUE_STRING],
+		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
 	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
@@ -703,7 +711,7 @@ stock Lang_printf(var[], va_args<>)
 stock Lang_printfex(Lang:lang, var[], va_args<>)
 {
 	static
-		text[MAX_LANG_MVALUE_STRING],
+		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
 	success = Lang_GetText(lang, var, text);
@@ -713,7 +721,7 @@ stock Lang_printfex(Lang:lang, var[], va_args<>)
 }
 
 // print
-stock Lang_print(var[], va_args<>)
+stock Lang_print(var[])
 {
 	static
 		text[MAX_LANG_MVALUE_STRING],
@@ -742,7 +750,7 @@ stock Lang_printex(Lang:lang, var[])
 stock Lang_SendText(playerid, var[], va_args<>)
 {
 	static
-		text[MAX_LANG_VALUE_STRING];
+		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
 	va_format(text, sizeof(text), text, va_start<2>);
@@ -753,7 +761,7 @@ stock Lang_SendTextToAll(var[], va_args<>)
 {
 	static
 		playerid,
-		text[MAX_LANG_VALUE_STRING];
+		text[MAX_LANG_FORMAT_STRING];
 
 #if defined foreach
 	foreach (playerid : Player) {
@@ -774,7 +782,7 @@ stock Lang_SendTextToPlayers(players[], var[], va_args<>)
 {
 	static
 		idx,
-		text[MAX_LANG_VALUE_STRING];
+		text[MAX_LANG_FORMAT_STRING];
 
 	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
 		Lang_GetText(Lang_GetPlayerLang(players[idx]), var, text);
@@ -791,7 +799,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 		caption[MAX_LANG_VALUE_STRING],
 		button1[MAX_LANG_VALUE_STRING],
 		button2[MAX_LANG_VALUE_STRING],
-		info[MAX_LANG_MVALUE_STRING];
+		info[MAX_LANG_MFORMAT_STRING];
 
 	lang = Lang_GetPlayerLang(playerid);
 
@@ -809,7 +817,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 stock Lang_GameText(playerid, time, style, var[], va_args<>)
 {
 	static
-		text[MAX_LANG_VALUE_STRING];
+		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
 	va_format(text, sizeof(text), text, va_start<4>);
@@ -820,7 +828,7 @@ stock Lang_GameTextForAll(time, style, var[], va_args<>)
 {
 	static
 		playerid,
-		text[MAX_LANG_VALUE_STRING];
+		text[MAX_LANG_FORMAT_STRING];
 
 #if defined foreach
 	foreach (playerid : Player) {
