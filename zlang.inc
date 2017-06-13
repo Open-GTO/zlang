@@ -4,7 +4,6 @@
 	Author: ziggi
 
 */
-
 #if !defined _samp_included
 	#error Please include a_samp or a_npc before zlang
 #endif
@@ -122,7 +121,7 @@ static
 	gLangInfo[MAX_LANGS][e_ZLANG_INFO],
 	gLangFiles[MAX_LANGS][MAX_LANG_FILES][MAX_LANG_FILENAME],
 	gLangSlots[MAX_LANGS char],
-	Lang:gLangCount,
+	gLangCount,
 	Lang:gDefaultLang,
 	Lang:gPlayerLang[MAX_PLAYERS];
 
@@ -587,7 +586,7 @@ stock Lang:Lang_SetPlayerLangByCode(playerid, code[])
 {
 	new Lang:lang = Lang_Get(code);
 	if (lang == INVALID_LANG_ID) {
-		return 0;
+		return INVALID_LANG_ID;
 	}
 
 	gPlayerLang[playerid] = lang;
@@ -598,7 +597,7 @@ stock Lang:Lang_SetPlayerLangByName(playerid, name[])
 {
 	new Lang:lang = Lang_Get(.name = name);
 	if (lang == INVALID_LANG_ID) {
-		return 0;
+		return INVALID_LANG_ID;
 	}
 
 	gPlayerLang[playerid] = lang;
@@ -626,7 +625,7 @@ stock Lang:Lang_GetDefaultLang()
 
 stock Lang_SetText(Lang:lang, var[], text[])
 {
-	if (isnull(varname)) {
+	if (isnull(var)) {
 		return 0;
 	}
 
@@ -677,7 +676,7 @@ stock Lang_RemoveText(Lang:lang, var[])
 
 stock Lang_IsTextExists(Lang:lang, var[])
 {
-	if (isnull(varname)) {
+	if (isnull(var)) {
 		return 0;
 	}
 
@@ -840,7 +839,7 @@ stock Lang_GameTextForAll(time, style, var[], va_args<>)
 #endif
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
 		va_format(text, sizeof(text), text, va_start<3>);
-		SendClientMessage(playerid, -1, text);
+		GameTextForPlayer(playerid, text, time, style)
 	}
 	return GameTextForAll(text, time, style);
 }
