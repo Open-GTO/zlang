@@ -976,6 +976,13 @@ static stock _Lang_pow(value, degree)
 }
 
 #if !defined _INC_y_va
+forward _Lang_SysreqFix();
+public _Lang_SysreqFix()
+{
+	new temp[2];
+	format(temp, sizeof(temp), "");
+}
+
 stock va_format(out[], size, const fmat[], va_:STATIC_ARGS)
 {
 	static
