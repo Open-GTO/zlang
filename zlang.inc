@@ -85,10 +85,8 @@
 #define INVALID_LANG_ID (Lang:-1)
 #define INVALID_LANG_FILE_ID (-1)
 
-#if !defined _INC_y_va
-	#define va_args<%0> {Float, _}:...
-	#define va_start<%0> (va_:(%0))
-#endif
+#define lang_args<%0> {Float, _}:...
+#define lang_start<%0> (lang_:(%0))
 
 /*
 	Define functions
@@ -636,7 +634,7 @@ stock Lang_SetText(Lang:lang, var[], text[])
 	return _Lang_SetText(lang, var, text);
 }
 
-stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<>)
+stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_args<>)
 {
 	if (!Lang_IsValid(lang)) {
 		_Lang_strcpy(text, "Error: lang is invalid.", size);
@@ -661,7 +659,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), va_args<
 	}
 
 	if (numargs() > 4) {
-		_Lang_format(text, size, temp, va_start<4>);
+		_Lang_format(text, size, temp, lang_start<4>);
 	} else {
 		_Lang_strcpy(text, temp, size);
 	}
@@ -695,26 +693,26 @@ stock Lang_IsTextExists(Lang:lang, var[])
 */
 
 // printf
-stock Lang_printf(var[], va_args<>)
+stock Lang_printf(var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
 	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
-	_Lang_format(text, sizeof(text), text, va_start<1>);
+	_Lang_format(text, sizeof(text), text, lang_start<1>);
 	print(text);
 	return success;
 }
 
-stock Lang_printfex(Lang:lang, var[], va_args<>)
+stock Lang_printfex(Lang:lang, var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
 	success = Lang_GetText(lang, var, text);
-	_Lang_format(text, sizeof(text), text, va_start<2>);
+	_Lang_format(text, sizeof(text), text, lang_start<2>);
 	print(text);
 	return success;
 }
@@ -746,17 +744,17 @@ stock Lang_printex(Lang:lang, var[])
 	Player text functions
 */
 
-stock Lang_SendText(playerid, var[], va_args<>)
+stock Lang_SendText(playerid, var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-	_Lang_format(text, sizeof(text), text, va_start<2>);
+	_Lang_format(text, sizeof(text), text, lang_start<2>);
 	return SendClientMessage(playerid, -1, text);
 }
 
-stock Lang_SendTextToAll(var[], va_args<>)
+stock Lang_SendTextToAll(var[], lang_args<>)
 {
 	static
 		playerid,
@@ -771,13 +769,13 @@ stock Lang_SendTextToAll(var[], va_args<>)
 		}
 #endif
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-		_Lang_format(text, sizeof(text), text, va_start<1>);
+		_Lang_format(text, sizeof(text), text, lang_start<1>);
 		SendClientMessage(playerid, -1, text);
 	}
 	return 1;
 }
 
-stock Lang_SendTextToPlayers(players[], var[], va_args<>)
+stock Lang_SendTextToPlayers(players[], var[], lang_args<>)
 {
 	static
 		idx,
@@ -785,13 +783,13 @@ stock Lang_SendTextToPlayers(players[], var[], va_args<>)
 
 	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
 		Lang_GetText(Lang_GetPlayerLang(players[idx]), var, text);
-		_Lang_format(text, sizeof(text), text, va_start<2>);
+		_Lang_format(text, sizeof(text), text, lang_start<2>);
 		SendClientMessage(players[idx], -1, text);
 	}
 	return 1;
 }
 
-stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], va_args<>)
+stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], lang_args<>)
 {
 	static
 		Lang:lang,
@@ -808,22 +806,22 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 		Lang_GetText(lang, var_button2, button2);
 	}
 	Lang_GetText(lang, var_info, info);
-	_Lang_format(info, sizeof(info), info, va_start<7>);
+	_Lang_format(info, sizeof(info), info, lang_start<7>);
 
 	return ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
 }
 
-stock Lang_GameText(playerid, time, style, var[], va_args<>)
+stock Lang_GameText(playerid, time, style, var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-	_Lang_format(text, sizeof(text), text, va_start<4>);
+	_Lang_format(text, sizeof(text), text, lang_start<4>);
 	return GameTextForPlayer(playerid, text, time, style);
 }
 
-stock Lang_GameTextForAll(time, style, var[], va_args<>)
+stock Lang_GameTextForAll(time, style, var[], lang_args<>)
 {
 	static
 		playerid,
@@ -838,7 +836,7 @@ stock Lang_GameTextForAll(time, style, var[], va_args<>)
 		}
 #endif
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-		_Lang_format(text, sizeof(text), text, va_start<3>);
+		_Lang_format(text, sizeof(text), text, lang_start<3>);
 		GameTextForPlayer(playerid, text, time, style)
 	}
 	return GameTextForAll(text, time, style);
@@ -982,7 +980,7 @@ public _Lang_SysreqFix()
 	format(temp, sizeof(temp), "");
 }
 
-static stock _Lang_format(out[], size, const fmat[], va_:STATIC_ARGS)
+static stock _Lang_format(out[], size, const fmat[], lang_:STATIC_ARGS)
 {
 	static
 		YSI_g_sHeap,
