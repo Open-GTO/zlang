@@ -10,14 +10,14 @@
 
 #if !defined SetGVarString
 	#tryinclude "gvar"
+#endif
 
-	#if !defined SetGVarString
-		#tryinclude <gvar>
+#if !defined SetGVarString
+	#tryinclude <gvar>
+#endif
 
-		#if !defined SetGVarString
-			#error Please include gvar before zlang
-		#endif
-	#endif
+#if !defined SetGVarString
+	#error Please include gvar before zlang
 #endif
 
 #if defined _zlang_included
