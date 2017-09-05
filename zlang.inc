@@ -659,7 +659,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 	}
 
 	if (numargs() > 4) {
-		_Lang_format(text, size, temp, lang_start<4>);
+		Lang_format(text, size, temp, lang_start<4>);
 	} else {
 		_Lang_strcpy(text, temp, size);
 	}
@@ -700,7 +700,7 @@ stock Lang_printf(var[], lang_args<>)
 		success;
 
 	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
-	_Lang_format(text, sizeof(text), text, lang_start<1>);
+	Lang_format(text, sizeof(text), text, lang_start<1>);
 	print(text);
 	return success;
 }
@@ -712,7 +712,7 @@ stock Lang_printfex(Lang:lang, var[], lang_args<>)
 		success;
 
 	success = Lang_GetText(lang, var, text);
-	_Lang_format(text, sizeof(text), text, lang_start<2>);
+	Lang_format(text, sizeof(text), text, lang_start<2>);
 	print(text);
 	return success;
 }
@@ -750,7 +750,7 @@ stock Lang_SendText(playerid, var[], lang_args<>)
 		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-	_Lang_format(text, sizeof(text), text, lang_start<2>);
+	Lang_format(text, sizeof(text), text, lang_start<2>);
 	return SendClientMessage(playerid, -1, text);
 }
 
@@ -769,7 +769,7 @@ stock Lang_SendTextToAll(var[], lang_args<>)
 		}
 #endif
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-		_Lang_format(text, sizeof(text), text, lang_start<1>);
+		Lang_format(text, sizeof(text), text, lang_start<1>);
 		SendClientMessage(playerid, -1, text);
 	}
 	return 1;
@@ -783,7 +783,7 @@ stock Lang_SendTextToPlayers(players[], var[], lang_args<>)
 
 	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
 		Lang_GetText(Lang_GetPlayerLang(players[idx]), var, text);
-		_Lang_format(text, sizeof(text), text, lang_start<2>);
+		Lang_format(text, sizeof(text), text, lang_start<2>);
 		SendClientMessage(players[idx], -1, text);
 	}
 	return 1;
@@ -806,7 +806,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 		Lang_GetText(lang, var_button2, button2);
 	}
 	Lang_GetText(lang, var_info, info);
-	_Lang_format(info, sizeof(info), info, lang_start<7>);
+	Lang_format(info, sizeof(info), info, lang_start<7>);
 
 	return ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
 }
@@ -817,7 +817,7 @@ stock Lang_GameText(playerid, time, style, var[], lang_args<>)
 		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-	_Lang_format(text, sizeof(text), text, lang_start<4>);
+	Lang_format(text, sizeof(text), text, lang_start<4>);
 	return GameTextForPlayer(playerid, text, time, style);
 }
 
@@ -836,7 +836,7 @@ stock Lang_GameTextForAll(time, style, var[], lang_args<>)
 		}
 #endif
 		Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-		_Lang_format(text, sizeof(text), text, lang_start<3>);
+		Lang_format(text, sizeof(text), text, lang_start<3>);
 		GameTextForPlayer(playerid, text, time, style)
 	}
 	return GameTextForAll(text, time, style);
@@ -980,7 +980,8 @@ public _Lang_SysreqFix()
 	format(temp, sizeof(temp), "");
 }
 
-static stock _Lang_format(out[], size, const fmat[], lang_:STATIC_ARGS)
+// taken from YSI
+stock Lang_format(out[], size, const fmat[], lang_:STATIC_ARGS)
 {
 	static
 		YSI_g_sHeap,
