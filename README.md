@@ -242,7 +242,7 @@ public OnGameModeInit()
 	Lang_LoadFile(gLang[e_LANG_EN], "en.ini");
 
 	// set english as the default language
-	Lang_SetDefaultLanguage(gLang[e_LANG_EN]);
+	Lang_SetDefaultLang(gLang[e_LANG_EN]);
 	return 1;
 }
 
