@@ -668,8 +668,8 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 
 	is_colored = false;
 	if (var_temp[0] == '{' && var_temp[7] == '}') {
-		strmid(color, var, 0, 8);
-		strdel(var, 0, 8);
+		strmid(color, var_temp, 0, 8);
+		strdel(var_temp, 0, 8);
 		is_colored = true;
 	}
 
