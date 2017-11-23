@@ -261,7 +261,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	}
 
 	if (strcmp(cmdtext, "/help", true, 5) == 0) {
-		Lang_SendText(playerid, "HELLO_MSG");
+		Lang_SendText(playerid, "{FF0000}HELLO_MSG");
 		Lang_SendText(playerid, "COMMANDS_LIST");
 		return 1;
 	}
@@ -272,14 +272,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
 
 **scriptfiles/en.ini:**
 ```ini
-LANGUAGE_CHANGED = Now you are using english language.
-HELLO_MSG = Hello, World!
+LANGUAGE_CHANGED = {CCCCCC}Now you are using english language.
+HELLO_MSG = Hello, {00FF00}World!
 COMMANDS_LIST = Commands: /help, /en, /ru
 ```
 
 **scriptfiles/ru.ini:**
 ```ini
-LANGUAGE_CHANGED = Теперь вы используете русский язык.
-HELLO_MSG = Привет, Мир!
+LANGUAGE_CHANGED = {CCCCCC}Теперь вы используете русский язык.
+HELLO_MSG = Привет, {00FF00}Мир!
 COMMANDS_LIST = Команды: /help, /en, /ru
 ```
