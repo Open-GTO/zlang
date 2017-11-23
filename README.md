@@ -14,7 +14,7 @@ Directive | Default value | Can be redefined
 MAX_LANGS | 2 | yes
 LANG_VAR_OFFSET | 1000 | yes
 LANG_IGNORED_FIRST_SYMBOL | '\0', '#', ';' | yes
-MAX_LANG_VAR_STRING | 64 | yes
+MAX_LANG_VAR_STRING | 144 | yes
 MAX_LANG_VALUE_STRING | 144 | yes
 MAX_LANG_SEPARATOR_STRING | 64 | yes
 MAX_LANG_MVALUE_STRING | MAX_LANG_VALUE_STRING * 25 | yes

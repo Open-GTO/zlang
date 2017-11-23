@@ -43,7 +43,7 @@
 #endif
 
 #if !defined MAX_LANG_VAR_STRING
-	#define MAX_LANG_VAR_STRING (64)
+	#define MAX_LANG_VAR_STRING (144)
 #endif
 
 #if !defined MAX_LANG_VALUE_STRING
@@ -243,7 +243,7 @@ stock Lang_LoadFile(Lang:lang, filename[])
 		return INVALID_LANG_FILE_ID;
 	}
 
-	new fid  = _Lang_FindFile(lang, filename);
+	new fid = _Lang_FindFile(lang, filename);
 	if (fid != INVALID_LANG_FILE_ID) {
 		return fid;
 	}
@@ -631,7 +631,16 @@ stock Lang_SetText(Lang:lang, var[], text[])
 		return 0;
 	}
 
-	return _Lang_SetText(lang, var, text);
+	static
+		var_temp[MAX_LANG_VAR_STRING];
+
+	if (var{0} != 0) {
+		strunpack(var_temp, var);
+	} else {
+		_Lang_strcpy(var_temp, var);
+	}
+
+	return _Lang_SetText(lang, var_temp, text);
 }
 
 stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_args<>)
@@ -647,11 +656,18 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 	}
 
 	static
+		var_temp[MAX_LANG_VAR_STRING],
 		bool:is_colored,
 		color[9];
 
+	if (var{0} != 0) {
+		strunpack(var_temp, var);
+	} else {
+		_Lang_strcpy(var_temp, var);
+	}
+
 	is_colored = false;
-	if ((var[0] == '{' && var[7] == '}') || (var{0} == '{' && var{7} == '}')) {
+	if (var_temp[0] == '{' && var_temp[7] == '}') {
 		strmid(color, var, 0, 8);
 		strdel(var, 0, 8);
 		is_colored = true;
@@ -660,7 +676,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 	static
 		temp[MAX_LANG_MFORMAT_STRING];
 
-	new success = _Lang_GetText(lang, var, temp);
+	new success = _Lang_GetText(lang, var_temp, temp);
 	if (!success) {
 		text[0] = '\0';
 
@@ -668,7 +684,7 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 			strcat(text, color, size);
 		}
 
-		strcat(text, var, size);
+		strcat(text, var_temp, size);
 		return 2;
 	}
 
