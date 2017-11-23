@@ -647,21 +647,45 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 	}
 
 	static
+		bool:is_colored,
+		color[9];
+
+	is_colored = false;
+	if ((var[0] == '{' && var[7] == '}') || (var{0} == '{' && var{7} == '}')) {
+		strmid(color, var, 0, 8);
+		strdel(var, 0, 8);
+		is_colored = true;
+	}
+
+	static
 		temp[MAX_LANG_MFORMAT_STRING];
 
 	new success = _Lang_GetText(lang, var, temp);
 	if (!success) {
 		text[0] = '\0';
-		strcat(text, "Error: lang var '", size);
+
+		if (is_colored) {
+			strcat(text, color, size);
+		}
+
 		strcat(text, var, size);
-		strcat(text, "' is not found.", size);
-		return 0;
+		return 2;
 	}
 
 	if (numargs() > 4) {
 		Lang_format(text, size, temp, lang_start<4>);
+
+		if (is_colored) {
+			format(text, size, "%s%s", color, text);
+		}
 	} else {
-		_Lang_strcpy(text, temp, size);
+		text[0] = '\0';
+
+		if (is_colored) {
+			strcat(text, color, size);
+		}
+
+		strcat(text, temp, size);
 	}
 
 	return 1;
