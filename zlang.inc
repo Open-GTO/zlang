@@ -288,6 +288,8 @@ stock Lang_LoadFile(Lang:lang, filename[])
 				} else if (sep_epos == -1) {
 					if (string[i] == '=') {
 						sep_epos = -2;
+					} else {
+						sep_spos = -1;
 					}
 				} else if (sep_epos == -2) {
 					if (string[i] != ' ' && string[i] != '\t') {
