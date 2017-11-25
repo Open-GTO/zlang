@@ -680,6 +680,11 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 		return 0;
 	}
 
+	if (strlen(var) >= MAX_LANG_VAR_STRING) {
+		_Lang_strcpy(text, var, size);
+		return 2;
+	}
+
 	static
 		var_temp[MAX_LANG_VAR_STRING],
 		bool:is_colored,
