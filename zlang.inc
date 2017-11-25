@@ -414,54 +414,6 @@ stock Lang_LoadFile(Lang:lang, filename[])
 	return fid;
 }
 
-static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
-{
-	new
-		i,
-		spos,
-		epos,
-		varname[MAX_LANG_VAR_STRING + 1],
-		varvalue[MAX_LANG_VALUE_STRING + 1],
-		bool:next_iteration,
-		vartmp[MAX_LANG_VAR_STRING + 1],
-		valtmp[MAX_LANG_VALUE_STRING + 1];
-
-	do {
-		next_iteration = false;
-
-		for (i = 0; i < strings_with_vars; i++) {
-			if (!GetGVarString("zlang_vars_name", varname, .id = i)) {
-				continue;
-			}
-
-			_Lang_GetText(lang, varname, varvalue);
-
-			while ((spos = strfind(varvalue, "\\v(", true)) != -1) {
-				next_iteration = true;
-
-				epos = strfind(varvalue, ")", true, spos);
-				if (epos == -1) {
-					next_iteration = false;
-					printf("Error: error with using language variables, example of usage: \\v(VARIABLE)");
-					break;
-				}
-
-				strmid(vartmp, varvalue, spos + 3, epos);
-
-				_Lang_GetText(lang, vartmp, valtmp);
-
-				strdel(varvalue, spos, epos + 1);
-				format(varvalue, sizeof(varvalue), "%.*s%s%s", spos, varvalue, valtmp, varvalue[spos]);
-
-				_Lang_SetText(lang, varname, varvalue);
-
-			}
-
-			DeleteGVar("zlang_vars_name", i);
-		}
-	} while (next_iteration);
-}
-
 stock Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
 {
 	if (fid == INVALID_LANG_FILE_ID) {
@@ -955,6 +907,26 @@ stock Lang_GameTextForAll(time, style, var[], lang_args<>)
 	return GameTextForAll(text, time, style);
 }
 
+stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, var[], lang_args<>)
+{
+	static
+		text[MAX_LANG_FORMAT_STRING];
+
+	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
+	Lang_format(text, sizeof(text), text, lang_start<4>);
+	return CreatePlayerTextDraw(playerid, x, y, text);
+}
+
+stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, var[], lang_args<>)
+{
+	static
+		string[MAX_LANG_FORMAT_STRING];
+
+	Lang_GetText(Lang_GetPlayerLang(playerid), var, string);
+	Lang_format(string, sizeof(string), string, lang_start<3>);
+	return PlayerTextDrawSetString(playerid, text, string);
+}
+
 /*
 	Private functions
 */
@@ -1035,6 +1007,54 @@ static stock _Lang_RemoveText(Lang:lang, var[])
 static stock _Lang_IsTextExists(Lang:lang, var[])
 {
 	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
+}
+
+static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
+{
+	new
+		i,
+		spos,
+		epos,
+		varname[MAX_LANG_VAR_STRING + 1],
+		varvalue[MAX_LANG_VALUE_STRING + 1],
+		bool:next_iteration,
+		vartmp[MAX_LANG_VAR_STRING + 1],
+		valtmp[MAX_LANG_VALUE_STRING + 1];
+
+	do {
+		next_iteration = false;
+
+		for (i = 0; i < strings_with_vars; i++) {
+			if (!GetGVarString("zlang_vars_name", varname, .id = i)) {
+				continue;
+			}
+
+			_Lang_GetText(lang, varname, varvalue);
+
+			while ((spos = strfind(varvalue, "\\v(", true)) != -1) {
+				next_iteration = true;
+
+				epos = strfind(varvalue, ")", true, spos);
+				if (epos == -1) {
+					next_iteration = false;
+					printf("Error: error with using language variables, example of usage: \\v(VARIABLE)");
+					break;
+				}
+
+				strmid(vartmp, varvalue, spos + 3, epos);
+
+				_Lang_GetText(lang, vartmp, valtmp);
+
+				strdel(varvalue, spos, epos + 1);
+				format(varvalue, sizeof(varvalue), "%.*s%s%s", spos, varvalue, valtmp, varvalue[spos]);
+
+				_Lang_SetText(lang, varname, varvalue);
+
+			}
+
+			DeleteGVar("zlang_vars_name", i);
+		}
+	} while (next_iteration);
 }
 
 /*
