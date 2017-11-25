@@ -265,7 +265,8 @@ stock Lang_LoadFile(Lang:lang, filename[])
 		string[MAX_LANG_VAR_STRING + MAX_LANG_SEPARATOR_STRING + MAX_LANG_VALUE_STRING + 1],
 		idx,
 		symbol,
-		length;
+		length,
+		strings_with_vars;
 
 	while (fread(flang, string, sizeof(string))) {
 		switch (string[0]) {
@@ -382,6 +383,18 @@ stock Lang_LoadFile(Lang:lang, filename[])
 
 						strdel(string, i + 1, i + length + 1);
 					}
+					case 'v': {
+						new
+							exist,
+							temp[MAX_LANG_VAR_STRING + 1];
+
+						exist = GetGVarString("zlang_vars_name", temp, .id = strings_with_vars - 1);
+
+						if (!exist || strcmp(varname, temp, true)) {
+							SetGVarString("zlang_vars_name", varname, strings_with_vars);
+							strings_with_vars++;
+						}
+					}
 				}
 			}
 		}
@@ -392,8 +405,59 @@ stock Lang_LoadFile(Lang:lang, filename[])
 		}
 	}
 
+	// vars processing
+	_Lang_ProcessVars(lang, strings_with_vars);
+
 	fclose(flang);
 	return fid;
+}
+
+static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
+{
+	new
+		i,
+		spos,
+		epos,
+		varname[MAX_LANG_VAR_STRING + 1],
+		varvalue[MAX_LANG_VALUE_STRING + 1],
+		bool:next_iteration,
+		vartmp[MAX_LANG_VAR_STRING + 1],
+		valtmp[MAX_LANG_VALUE_STRING + 1];
+
+	do {
+		next_iteration = false;
+
+		for (i = 0; i < strings_with_vars; i++) {
+			if (!GetGVarString("zlang_vars_name", varname, .id = i)) {
+				continue;
+			}
+
+			_Lang_GetText(lang, varname, varvalue);
+
+			while ((spos = strfind(varvalue, "\\v(", true)) != -1) {
+				next_iteration = true;
+
+				epos = strfind(varvalue, ")", true, spos);
+				if (epos == -1) {
+					next_iteration = false;
+					printf("Error: error with using language variables, example of usage: \\v(VARIABLE)");
+					break;
+				}
+
+				strmid(vartmp, varvalue, spos + 3, epos);
+
+				_Lang_GetText(lang, vartmp, valtmp);
+
+				strdel(varvalue, spos, epos + 1);
+				format(varvalue, sizeof(varvalue), "%.*s%s%s", spos, varvalue, valtmp, varvalue[spos]);
+
+				_Lang_SetText(lang, varname, varvalue);
+
+			}
+
+			DeleteGVar("zlang_vars_name", i);
+		}
+	} while (next_iteration);
 }
 
 stock Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
@@ -640,7 +704,14 @@ stock Lang_SetText(Lang:lang, var[], text[])
 		_Lang_strcpy(var_temp, var);
 	}
 
-	return _Lang_SetText(lang, var_temp, text);
+	new res = _Lang_SetText(lang, var_temp, text);
+
+	if (strfind(text, "\\v(", true) != -1) {
+		SetGVarString("zlang_vars_name", var, 0);
+		_Lang_ProcessVars(lang, 1);
+	}
+
+	return res;
 }
 
 stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_args<>)
