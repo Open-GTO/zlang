@@ -213,8 +213,30 @@ Lang_GameText(playerid, time, style, var[], {Float, _}:...)
 Lang_GameTextForAll(time, style, var[], {Float, _}:...)
 ```
 
+#### Create player TextDraw with language var
+```Pawn
+Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, var[], {Float, _}:...)
+```
+
+#### Sets the language text to the player TextDraw
+```Pawn
+Lang_PlayerTextDrawSetString(playerid, PlayerText:text, var[], {Float, _}:...)
+```
+
 # Language file format
 Language file format is a standard INI file format (without sections). It supports a variety of special characters, such as \n, \t, \%, \s, \\\\, \\\<value\>, \x\<hex\>.
+
+# Variables
+You can use variables in your text files. This supports any nesting level.
+```ini
+HELLO_MSG = Hello
+COLOR_RED = {FF0000}
+COLOR_GREEN = {00FF00}
+COLOR_WHITE = {FFFFFF}
+NAME_ONE = \v(COLOR_RED)Alex\v(COLOR_WHITE)
+NAME_TWO = \v(COLOR_GREEN)Peter\v(COLOR_WHITE)
+MESSAGE_HELLO = \v(COLOR_WHITE)\v(HELLO_MSG) \v(NAME_ONE) and \v(NAME_TWO)
+```
 
 # Example
 ```Pawn
@@ -266,20 +288,31 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		return 1;
 	}
 
+	if (strcmp(cmdtext, "/help330", true, 5) == 0) {
+		Lang_SendText(playerid, "Hello, World!");
+		Lang_SendText(playerid, "Commands: /help, /en, /ru");
+		return 1;
+	}
+
 	return 0;
 }
 ```
 
 **scriptfiles/en.ini:**
 ```ini
-LANGUAGE_CHANGED = {CCCCCC}Now you are using english language.
+COLOR_GRAY = {CCCCCC}
+LANGUAGE_CHANGED = \v(COLOR_GRAY)Now you are using english language.
 HELLO_MSG = Hello, {00FF00}World!
 COMMANDS_LIST = Commands: /help, /en, /ru
 ```
 
 **scriptfiles/ru.ini:**
 ```ini
-LANGUAGE_CHANGED = {CCCCCC}Теперь вы используете русский язык.
+COLOR_GRAY = {CCCCCC}
+LANGUAGE_CHANGED = \v(COLOR_GRAY)Теперь вы используете русский язык.
 HELLO_MSG = Привет, {00FF00}Мир!
 COMMANDS_LIST = Команды: /help, /en, /ru
+# in zlang 3.3.0
+Hello, World! = \v(HELLO_MSG)
+Commands: /help, /en, /ru = \v(COMMANDS_LIST)
 ```
