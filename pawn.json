@@ -1,6 +1,4 @@
 {
-	"user": "ziggi",
-	"repo": "zlang",
 	"entry": "test.pwn",
 	"output": "test.amx",
 	"dependencies": [
