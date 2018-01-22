@@ -501,7 +501,10 @@ stock Lang:Lang_Get(code[] = "", name[] = "")
 
 stock Lang_SetName(Lang:lang, name[])
 {
-	return _Lang_strcpy(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME);
+	if (var{0} != 0) {
+		return strunpack(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME + 1);
+	}
+	return _Lang_strcpy(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME + 1);
 }
 
 stock Lang_GetName(Lang:lang, name[], const size = sizeof(name))
@@ -511,13 +514,16 @@ stock Lang_GetName(Lang:lang, name[], const size = sizeof(name))
 
 stock Lang_ReturnName(Lang:lang)
 {
-	new name[MAX_LANG_NAME];
+	new name[MAX_LANG_NAME + 1];
 	Lang_GetName(lang, name);
 	return name;
 }
 
 stock Lang_SetCode(Lang:lang, code[])
 {
+	if (var{0} != 0) {
+		return strunpack(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
+	}
 	return _Lang_strcpy(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
 }
 
