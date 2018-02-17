@@ -134,54 +134,67 @@ forward Lang:_Lang_GetFreeSlot();
 	OnGameModeInit
 */
 
-public OnGameModeInit()
-{
-	for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
-		_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
+#if defined _inc_y_hooks || defined _INC_y_hooks
+	hook OnGameModeInit()
+#else
+	public OnGameModeInit()
+#endif
+	{
+		for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
+			_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
+		}
+
+		#if defined ZLANG_OnGameModeInit
+			return ZLANG_OnGameModeInit();
+		#else
+			return 1;
+		#endif
 	}
 
-	#if defined ZLANG_OnGameModeInit
-		return ZLANG_OnGameModeInit();
+#if !defined _inc_y_hooks && !defined _INC_y_hooks
+	#if defined _ALS_OnGameModeInit
+		#undef OnGameModeInit
 	#else
-		return 1;
+		#define _ALS_OnGameModeInit
 	#endif
-}
-#if defined _ALS_OnGameModeInit
-	#undef OnGameModeInit
-#else
-	#define _ALS_OnGameModeInit
-#endif
 
-#define OnGameModeInit ZLANG_OnGameModeInit
-#if defined ZLANG_OnGameModeInit
-	forward ZLANG_OnGameModeInit();
+	#define OnGameModeInit ZLANG_OnGameModeInit
+	#if defined ZLANG_OnGameModeInit
+		forward ZLANG_OnGameModeInit();
+	#endif
 #endif
 
 /*
 	OnGameModeExit
 */
+#if defined _inc_y_hooks || defined _INC_y_hooks
+	hook OnGameModeExit()
+#else
+	public OnGameModeExit()
+#endif
+	{
+		for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
+			Lang_Remove(lang);
+		}
 
-public OnGameModeExit()
-{
-	for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
-		Lang_Remove(lang);
+		#if defined ZLANG_OnGameModeExit
+			return ZLANG_OnGameModeExit();
+		#else
+			return 1;
+		#endif
 	}
 
-	#if defined ZLANG_OnGameModeExit
-		return ZLANG_OnGameModeExit();
+#if !defined _inc_y_hooks && !defined _INC_y_hooks
+	#if defined _ALS_OnGameModeExit
+		#undef OnGameModeExit
 	#else
-		return 1;
+		#define _ALS_OnGameModeExit
 	#endif
-}
-#if defined _ALS_OnGameModeExit
-	#undef OnGameModeExit
-#else
-	#define _ALS_OnGameModeExit
-#endif
 
-#define OnGameModeExit ZLANG_OnGameModeExit
-#if defined ZLANG_OnGameModeExit
-	forward ZLANG_OnGameModeExit();
+	#define OnGameModeExit ZLANG_OnGameModeExit
+	#if defined ZLANG_OnGameModeExit
+		forward ZLANG_OnGameModeExit();
+	#endif
 #endif
 
 /*
