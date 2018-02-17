@@ -501,7 +501,7 @@ stock Lang:Lang_Get(code[] = "", name[] = "")
 
 stock Lang_SetName(Lang:lang, name[])
 {
-	if (var{0} != 0) {
+	if (name{0} != 0) {
 		return strunpack(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME + 1);
 	}
 	return _Lang_strcpy(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME + 1);
@@ -521,7 +521,7 @@ stock Lang_ReturnName(Lang:lang)
 
 stock Lang_SetCode(Lang:lang, code[])
 {
-	if (var{0} != 0) {
+	if (code{0} != 0) {
 		return strunpack(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
 	}
 	return _Lang_strcpy(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
