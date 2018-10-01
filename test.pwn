@@ -23,6 +23,8 @@ main()
 
 	// set english as the default language
 	Lang_SetDefaultLang(gLang[e_LANG_EN]);
+
+	Lang_printf("COMMANDS_LIST");
 	return 1;
 }
 
