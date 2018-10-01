@@ -127,7 +127,7 @@ static
 	Forwards
 */
 
-forward Lang:Lang_Get(code[] = "", name[] = "");
+forward Lang:Lang_Get(const code[] = "", const name[] = "");
 forward Lang:_Lang_GetFreeSlot();
 
 /*
@@ -201,7 +201,7 @@ forward Lang:_Lang_GetFreeSlot();
 	Loading functions
 */
 
-stock Lang:Lang_Add(code[], name[])
+stock Lang:Lang_Add(const code[], const name[])
 {
 	if (isnull(code) || isnull(name)) {
 		return INVALID_LANG_ID;
@@ -246,7 +246,7 @@ stock Lang_Remove(Lang:lang)
 	return 1;
 }
 
-stock Lang_LoadFile(Lang:lang, filename[])
+stock Lang_LoadFile(Lang:lang, const filename[])
 {
 	if (!Lang_IsValid(lang)) {
 		return INVALID_LANG_FILE_ID;
@@ -427,7 +427,7 @@ stock Lang_LoadFile(Lang:lang, filename[])
 	return fid;
 }
 
-stock Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
+stock Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_ID)
 {
 	if (fid == INVALID_LANG_FILE_ID) {
 		if (isnull(filename)) {
@@ -491,7 +491,7 @@ stock Lang_Reload(Lang:lang)
 	}
 }
 
-stock Lang:Lang_Get(code[] = "", name[] = "")
+stock Lang:Lang_Get(const code[] = "", const name[] = "")
 {
 	new
 		Lang:lang = INVALID_LANG_ID,
@@ -512,7 +512,7 @@ stock Lang:Lang_Get(code[] = "", name[] = "")
 	return lang;
 }
 
-stock Lang_SetName(Lang:lang, name[])
+stock Lang_SetName(Lang:lang, const name[])
 {
 	if (name{0} != 0) {
 		return strunpack(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME + 1);
@@ -532,7 +532,7 @@ stock Lang_ReturnName(Lang:lang)
 	return name;
 }
 
-stock Lang_SetCode(Lang:lang, code[])
+stock Lang_SetCode(Lang:lang, const code[])
 {
 	if (code{0} != 0) {
 		return strunpack(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
@@ -617,7 +617,7 @@ stock Lang:Lang_GetPlayerLang(playerid)
 	return gPlayerLang[playerid];
 }
 
-stock Lang:Lang_SetPlayerLangByCode(playerid, code[])
+stock Lang:Lang_SetPlayerLangByCode(playerid, const code[])
 {
 	new Lang:lang = Lang_Get(code);
 	if (lang == INVALID_LANG_ID) {
@@ -628,7 +628,7 @@ stock Lang:Lang_SetPlayerLangByCode(playerid, code[])
 	return lang;
 }
 
-stock Lang:Lang_SetPlayerLangByName(playerid, name[])
+stock Lang:Lang_SetPlayerLangByName(playerid, const name[])
 {
 	new Lang:lang = Lang_Get(.name = name);
 	if (lang == INVALID_LANG_ID) {
@@ -658,7 +658,7 @@ stock Lang:Lang_GetDefaultLang()
 	Text functions
 */
 
-stock Lang_SetText(Lang:lang, var[], text[])
+stock Lang_SetText(Lang:lang, const var[], const text[])
 {
 	if (isnull(var)) {
 		return 0;
@@ -687,7 +687,7 @@ stock Lang_SetText(Lang:lang, var[], text[])
 	return res;
 }
 
-stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_args<>)
+stock Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(text), lang_args<>)
 {
 	if (!Lang_IsValid(lang)) {
 		_Lang_strcpy(text, "Error: lang is invalid.", size);
@@ -756,12 +756,12 @@ stock Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), lang_arg
 	return 1;
 }
 
-stock Lang_RemoveText(Lang:lang, var[])
+stock Lang_RemoveText(Lang:lang, const var[])
 {
 	return _Lang_RemoveText(lang, var);
 }
 
-stock Lang_IsTextExists(Lang:lang, var[])
+stock Lang_IsTextExists(Lang:lang, const var[])
 {
 	if (isnull(var)) {
 		return 0;
@@ -782,7 +782,7 @@ stock Lang_IsTextExists(Lang:lang, var[])
 */
 
 // printf
-stock Lang_printf(var[], lang_args<>)
+stock Lang_printf(const var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_MFORMAT_STRING],
@@ -794,7 +794,7 @@ stock Lang_printf(var[], lang_args<>)
 	return success;
 }
 
-stock Lang_printfex(Lang:lang, var[], lang_args<>)
+stock Lang_printfex(Lang:lang, const var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_MFORMAT_STRING],
@@ -807,7 +807,7 @@ stock Lang_printfex(Lang:lang, var[], lang_args<>)
 }
 
 // print
-stock Lang_print(var[])
+stock Lang_print(const var[])
 {
 	static
 		text[MAX_LANG_MVALUE_STRING],
@@ -818,7 +818,7 @@ stock Lang_print(var[])
 	return success;
 }
 
-stock Lang_printex(Lang:lang, var[])
+stock Lang_printex(Lang:lang, const var[])
 {
 	static
 		text[MAX_LANG_MVALUE_STRING],
@@ -833,7 +833,7 @@ stock Lang_printex(Lang:lang, var[])
 	Player text functions
 */
 
-stock Lang_SendText(playerid, var[], lang_args<>)
+stock Lang_SendText(playerid, const var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
@@ -843,7 +843,7 @@ stock Lang_SendText(playerid, var[], lang_args<>)
 	return SendClientMessage(playerid, -1, text);
 }
 
-stock Lang_SendTextToAll(var[], lang_args<>)
+stock Lang_SendTextToAll(const var[], lang_args<>)
 {
 	static
 		playerid,
@@ -864,7 +864,7 @@ stock Lang_SendTextToAll(var[], lang_args<>)
 	return 1;
 }
 
-stock Lang_SendTextToPlayers(players[], var[], lang_args<>)
+stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 {
 	static
 		idx,
@@ -878,7 +878,7 @@ stock Lang_SendTextToPlayers(players[], var[], lang_args<>)
 	return 1;
 }
 
-stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], lang_args<>)
+stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_info[], const var_button1[], const var_button2[], lang_args<>)
 {
 	static
 		Lang:lang,
@@ -900,7 +900,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_
 	return ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
 }
 
-stock Lang_GameText(playerid, time, style, var[], lang_args<>)
+stock Lang_GameText(playerid, time, style, const var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
@@ -910,7 +910,7 @@ stock Lang_GameText(playerid, time, style, var[], lang_args<>)
 	return GameTextForPlayer(playerid, text, time, style);
 }
 
-stock Lang_GameTextForAll(time, style, var[], lang_args<>)
+stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 {
 	static
 		playerid,
@@ -931,7 +931,7 @@ stock Lang_GameTextForAll(time, style, var[], lang_args<>)
 	return GameTextForAll(text, time, style);
 }
 
-stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, var[], lang_args<>)
+stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
@@ -941,7 +941,7 @@ stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, var[], la
 	return CreatePlayerTextDraw(playerid, x, y, text);
 }
 
-stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, var[], lang_args<>)
+stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, const var[], lang_args<>)
 {
 	static
 		string[MAX_LANG_FORMAT_STRING];
@@ -955,7 +955,7 @@ stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, var[], lang_args<>
 	Private functions
 */
 
-static stock _Lang_FindFile(Lang:lang, filename[])
+static stock _Lang_FindFile(Lang:lang, const filename[])
 {
 	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
 		if (isnull(gLangFiles[_:lang][fid])) {
@@ -985,12 +985,12 @@ static stock _Lang_GetFreeFileSlot(Lang:lang)
 	Text functions
 */
 
-static stock _Lang_SetText(Lang:lang, var[], text[])
+static stock _Lang_SetText(Lang:lang, const var[], const text[])
 {
 	return SetGVarString(var, text, LANG_VAR_OFFSET + _:lang);
 }
 
-static stock _Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
+static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(text))
 {
 	static
 		success,
@@ -1023,12 +1023,12 @@ static stock _Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text))
 	return success;
 }
 
-static stock _Lang_RemoveText(Lang:lang, var[])
+static stock _Lang_RemoveText(Lang:lang, const var[])
 {
 	return DeleteGVar(var, LANG_VAR_OFFSET + _:lang);
 }
 
-static stock _Lang_IsTextExists(Lang:lang, var[])
+static stock _Lang_IsTextExists(Lang:lang, const var[])
 {
 	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
 }
@@ -1115,7 +1115,7 @@ static stock _Lang_IsSlotHaveStatus(Lang:lang, status)
 	Other functions
 */
 
-static stock _Lang_strcpy(result[], source[], const size = sizeof(result))
+static stock _Lang_strcpy(result[], const source[], const size = sizeof(result))
 {
 	result[0] = 0;
 	return strcat(result, source, size);
