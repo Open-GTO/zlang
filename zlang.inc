@@ -951,17 +951,17 @@ stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, const var[], lang_
 	return PlayerTextDrawSetString(playerid, text, string);
 }
 
-stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, var[], color, Float:x, Float:y, Float:z, Float:DrawDistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, testLOS = 0, lang_args<>)
+stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:DrawDistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, testLOS = 0, lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
 
 	Lang_GetText(Lang_GetPlayerLang(playerid), var, text);
-	Lang_format(text, sizeof(text), text, lang_start<2>);
+	Lang_format(text, sizeof(text), text, lang_start<10>);
 	return CreatePlayer3DTextLabel(playerid, text, color, x, y, z, DrawDistance, attachedplayer, attachedvehicle, testLOS);
 }
 
-stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, var[], lang_args<>)
+stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[], lang_args<>)
 {
 	static
 		text[MAX_LANG_FORMAT_STRING];
