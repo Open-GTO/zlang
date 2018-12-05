@@ -30,7 +30,7 @@ INVALID_LANG_FILE_ID | -1 | no
 # Functions
 #### Add language
 ```Pawn
-Lang:Lang_Add(code[], name[])
+Lang:Lang_Add(const code[], const name[])
 ```
 
 #### Remove language
@@ -40,12 +40,12 @@ Lang_Remove(Lang:lang)
 
 #### Load language file
 ```Pawn
-Lang_LoadFile(Lang:lang, filename[])
+Lang_LoadFile(Lang:lang, const filename[])
 ```
 
 #### Unload language file
 ```Pawn
-Lang_UnloadFile(Lang:lang, filename[] = "", fid = INVALID_LANG_FILE_ID)
+Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_ID)
 ```
 
 #### Reload all language files
@@ -60,7 +60,7 @@ Lang:Lang_Get(code[] = "", name[] = "")
 
 #### Set language name
 ```Pawn
-Lang_SetName(Lang:lang, name[])
+Lang_SetName(Lang:lang, const name[])
 ```
 
 #### Get language name
@@ -75,7 +75,7 @@ Lang_ReturnName(Lang:lang)
 
 #### Set language code
 ```Pawn
-Lang_SetCode(Lang:lang, code[])
+Lang_SetCode(Lang:lang, const code[])
 ```
 
 #### Get language code
@@ -120,12 +120,12 @@ Lang:Lang_GetPlayerLang(playerid)
 
 #### Set player language by code
 ```Pawn
-Lang:Lang_SetPlayerLangByCode(playerid, code[])
+Lang:Lang_SetPlayerLangByCode(playerid, const code[])
 ```
 
 #### Set player language by name
 ```Pawn
-Lang:Lang_SetPlayerLangByName(playerid, name[])
+Lang:Lang_SetPlayerLangByName(playerid, const name[])
 ```
 
 #### Set default server language
@@ -140,87 +140,97 @@ Lang_GetDefaultLang()
 
 #### Get language text
 ```Pawn
-Lang_GetText(Lang:lang, var[], text[], const size = sizeof(text), {Float, _}:...)
+Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(text), {Float, _}:...)
 ```
 
 #### Get player language text
 ```Pawn
-Lang_GetPlayerText(playerid, var[], text[], const size = sizeof(text), {Float, _}:...)
+Lang_GetPlayerText(playerid, const var[], text[], const size = sizeof(text), {Float, _}:...)
 ```
 
 #### Get default language text
 ```Pawn
-Lang_GetDefaultText(var[], text[], const size = sizeof(text), {Float, _}:...)
+Lang_GetDefaultText(const var[], text[], const size = sizeof(text), {Float, _}:...)
 ```
 
 #### Remove language text
 ```Pawn
-Lang_RemoveText(Lang:lang, var[])
+Lang_RemoveText(Lang:lang, const var[])
 ```
 
 #### Is language text exists
 ```Pawn
-Lang_IsTextExists(Lang:lang, var[])
+Lang_IsTextExists(Lang:lang, const var[])
 ```
 
 #### Language printf function with default language
 ```Pawn
-Lang_printf(var[], {Float, _}:...)
+Lang_printf(const var[], {Float, _}:...)
 ```
 
 #### Language printf function with specific language
 ```Pawn
-Lang_printfex(Lang:lang, var[], {Float, _}:...)
+Lang_printfex(Lang:lang, const var[], {Float, _}:...)
 ```
 
 #### Language print function with default language
 ```Pawn
-Lang_print(var[], {Float, _}:...)
+Lang_print(const var[], {Float, _}:...)
 ```
 
 #### Language print function with specific language
 ```Pawn
-Lang_printex(Lang:lang, var[])
+Lang_printex(Lang:lang, const var[])
 ```
 
 #### Send language text to player
 ```Pawn
-Lang_SendText(playerid, var[], {Float, _}:...)
+Lang_SendText(playerid, const var[], {Float, _}:...)
 ```
 
 #### Send language text to all players
 ```Pawn
-Lang_SendTextToAll(var[], {Float, _}:...)
+Lang_SendTextToAll(const var[], {Float, _}:...)
 ```
 
 #### Send language text to all players in array
 ```Pawn
-Lang_SendTextToPlayers(players[], var[], {Float, _}:...)
+Lang_SendTextToPlayers(players[], const var[], {Float, _}:...)
 ```
 
 #### Show language dialog to player
 ```Pawn
-Lang_ShowDialog(playerid, dialogid, style, var_caption[], var_info[], var_button1[], var_button2[], {Float, _}:...)
+Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_info[], const var_button1[], const var_button2[], {Float, _}:...)
 ```
 
 #### Show language game text to player
 ```Pawn
-Lang_GameText(playerid, time, style, var[], {Float, _}:...)
+Lang_GameText(playerid, time, style, const var[], {Float, _}:...)
 ```
 
 #### Show language game text to all players
 ```Pawn
-Lang_GameTextForAll(time, style, var[], {Float, _}:...)
+Lang_GameTextForAll(time, style, const var[], {Float, _}:...)
 ```
 
 #### Create player TextDraw with language var
 ```Pawn
-Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, var[], {Float, _}:...)
+Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var[], {Float, _}:...)
 ```
 
 #### Sets the language text to the player TextDraw
 ```Pawn
-Lang_PlayerTextDrawSetString(playerid, PlayerText:text, var[], {Float, _}:...)
+Lang_PlayerTextDrawSetString(playerid, PlayerText:text, const var[], {Float, _}:...)
+```
+
+#### Create player 3D TextLabel with language var
+```Pawn
+Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:DrawDistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, testLOS = 0, {Float, _}:...)
+```
+
+#### Update player 3D TextLabel with language var
+```Pawn
+Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[], {Float, _}:...)
 ```
 
 # Language file format
