@@ -24,6 +24,7 @@ MAX_LANG_CODE | 2 | yes
 MAX_LANG_NAME | 16 | yes
 MAX_LANG_FILES | 5 | yes
 MAX_LANG_FILENAME | 256 | yes
+ENABLE_LANG_DYNAMIC_VARS | (disabled) | yes
 INVALID_LANG_ID | Lang:-1 | no
 INVALID_LANG_FILE_ID | -1 | no
 
@@ -246,9 +247,30 @@ COLOR_WHITE = {FFFFFF}
 NAME_ONE = \v(COLOR_RED)Alex\v(COLOR_WHITE)
 NAME_TWO = \v(COLOR_GREEN)Peter\v(COLOR_WHITE)
 MESSAGE_HELLO = \v(COLOR_WHITE)\v(HELLO_MSG) \v(NAME_ONE) and \v(NAME_TWO)
+dynamic_var_test = Hello, \v(%s) <- this is dynamic variable
 ```
 
-# Example
+Example of usage dynamic variables:
+
+```Pawn
+// initialize dynamic variables
+#define ENABLE_LANG_DYNAMIC_VARS
+#include <zlang>
+
+public OnGameModeInit()
+{
+	// ...init zlang...
+
+	Lang_printf("dynamic_var_test", "MESSAGE_HELLO");
+
+	// result:
+	// Hello, {FFFFFF}Hello {FF0000}Alex{FFFFFF} and {00FF00}Peter{FFFFFF} <- this is dynamic variable
+
+	return 1;
+}
+```
+
+# Basic example
 ```Pawn
 #include <a_samp>
 #include <gvar>
@@ -322,7 +344,7 @@ COLOR_GRAY = {CCCCCC}
 LANGUAGE_CHANGED = \v(COLOR_GRAY)Теперь вы используете русский язык.
 HELLO_MSG = Привет, {00FF00}Мир!
 COMMANDS_LIST = Команды: /help, /en, /ru
-# in zlang 3.3.0
+# since zlang 3.3.0
 Hello, World! = \v(HELLO_MSG)
 Commands: /help, /en, /ru = \v(COMMANDS_LIST)
 ```
