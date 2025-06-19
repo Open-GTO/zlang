@@ -272,6 +272,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 
 	new
 		i,
+		sep_found,
 		sep_spos,
 		sep_epos,
 		varname[MAX_LANG_VAR_STRING + 1],
@@ -288,136 +289,116 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 			}
 		}
 
-		sep_spos = -1;
-		sep_epos = -1;
+		sep_found = _Lang_FindSeparatorPositions(string, sep_spos, sep_epos);
+		if (!sep_found) {
+			continue;
+		}
+
+		if ((sep_epos - sep_spos) > MAX_LANG_SEPARATOR_STRING) {
+			printf("Error: length of lang separator more than %d.", MAX_LANG_SEPARATOR_STRING);
+			printf("Error: %s", string);
+		}
+
+		if ((sep_spos - 1) > MAX_LANG_VAR_STRING) {
+			printf("Error: length of lang variable more than %d.", MAX_LANG_VAR_STRING);
+			printf("Error: %s", string);
+		}
+
+		strmid(varname, string, 0, sep_spos);
+
+		if (_Lang_IsTextExists(lang, varname)) {
+			printf("Error: duplicated variable name %s in language '%s'", varname, Lang_ReturnName(lang));
+			break;
+		}
 
 		for (i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
-			if (sep_spos < 0 || sep_epos < 0) {
-				// get separator pos
-				if (sep_spos == -1) {
-					if (string[i] == ' ' || string[i] == '\t') {
-						sep_spos = i;
-					}
-				} else if (sep_epos == -1) {
-					if (string[i] == '=') {
-						sep_epos = -2;
-					} else {
-						sep_spos = -1;
-					}
-				} else if (sep_epos == -2) {
-					if (string[i] != ' ' && string[i] != '\t') {
-						sep_epos = i;
-					}
-				}
-
-				// if separator is found
-				if (sep_spos > 0 && sep_epos > 0) {
-					if ((sep_epos - sep_spos) > MAX_LANG_SEPARATOR_STRING) {
-						printf("Error: length of lang separator more than %d.", MAX_LANG_SEPARATOR_STRING);
-						printf("Error: %s", string);
-					}
-
-					if ((sep_spos - 1) > MAX_LANG_VAR_STRING) {
-						printf("Error: length of lang variable more than %d.", MAX_LANG_VAR_STRING);
-						printf("Error: %s", string);
-					}
-
-					strmid(varname, string, 0, sep_spos);
-
-					if (_Lang_IsTextExists(lang, varname)) {
-						printf("Error: duplicated variable name %s in language '%s'", varname, Lang_ReturnName(lang));
-						break;
-					}
-				}
+			if (string[i] != '\\') {
+				continue;
 			}
 
-			if (sep_spos > 0 && sep_epos > 0 && string[i] == '\\') {
-				switch (string[i + 1]) {
-					case 'n': {
-						strdel(string, i, i + 1);
-						string[i] = '\n';
+			switch (string[i + 1]) {
+				case 'n': {
+					strdel(string, i, i + 1);
+					string[i] = '\n';
+				}
+				case 't': {
+					strdel(string, i, i + 1);
+					string[i] = '\t';
+				}
+				case '%': {
+					string[i] = '%';
+				}
+				case 's': {
+					strdel(string, i, i + 1);
+					string[i] = ' ';
+				}
+				case '\\': {
+					strdel(string, i, i + 1);
+					string[i] = '\\';
+				}
+				case '0'..'9': {
+					length = 0;
+					string[i] = 0;
+
+					do {
+						length++;
+					} while ('0' <= string[i + length + 1] <= '9');
+
+					for (idx = 1; idx <= length; idx++) {
+						string[i] += (string[i + idx] - '0') * _Lang_pow(10, length - idx);
 					}
-					case 't': {
-						strdel(string, i, i + 1);
-						string[i] = '\t';
+
+					strdel(string, i + 1, i + length + 1);
+				}
+				case 'x': {
+					length = 0;
+					string[i] = 0;
+
+					do {
+						length++;
+						symbol = string[i + length + 1];
+					} while (   '0' <= symbol <= '9'
+					         || 'A' <= symbol <= 'F'
+					         || 'a' <= symbol <= 'f');
+
+					for (idx = 1; idx <= length; idx++) {
+						symbol = string[i + idx];
+
+						if ('A' <= symbol <= 'F') {
+							symbol = 10 + (symbol - 'A');
+						} else if ('a' <= symbol <= 'f') {
+							symbol = 10 + (symbol - 'a');
+						} else if ('0' <= symbol <= '9') {
+							symbol = symbol - '0';
+						}
+
+						string[i] += symbol * _Lang_pow(16, length - idx);
 					}
-					case '%': {
-						string[i] = '%';
-					}
-					case 's': {
-						strdel(string, i, i + 1);
+
+					// gvar is not support symbols with negative code
+					if (string[i] < 0) {
 						string[i] = ' ';
 					}
-					case '\\': {
-						strdel(string, i, i + 1);
-						string[i] = '\\';
-					}
-					case '0'..'9': {
-						length = 0;
-						string[i] = 0;
 
-						do {
-							length++;
-						} while ('0' <= string[i + length + 1] <= '9');
+					strdel(string, i + 1, i + length + 1);
+				}
+				case 'v': {
+					new
+						exist,
+						temp[MAX_LANG_VAR_STRING + 1];
 
-						for (idx = 1; idx <= length; idx++) {
-							string[i] += (string[i + idx] - '0') * _Lang_pow(10, length - idx);
-						}
+					exist = GetGVarString("zlang_vars_name", temp, .id = strings_with_vars - 1);
 
-						strdel(string, i + 1, i + length + 1);
-					}
-					case 'x': {
-						length = 0;
-						string[i] = 0;
-
-						do {
-							length++;
-							symbol = string[i + length + 1];
-						} while (   '0' <= symbol <= '9'
-						         || 'A' <= symbol <= 'F'
-						         || 'a' <= symbol <= 'f');
-
-						for (idx = 1; idx <= length; idx++) {
-							symbol = string[i + idx];
-
-							if ('A' <= symbol <= 'F') {
-								symbol = 10 + (symbol - 'A');
-							} else if ('a' <= symbol <= 'f') {
-								symbol = 10 + (symbol - 'a');
-							} else if ('0' <= symbol <= '9') {
-								symbol = symbol - '0';
-							}
-
-							string[i] += symbol * _Lang_pow(16, length - idx);
-						}
-
-						// gvar is not support symbols with negative code
-						if (string[i] < 0) {
-							string[i] = ' ';
-						}
-
-						strdel(string, i + 1, i + length + 1);
-					}
-					case 'v': {
-						new
-							exist,
-							temp[MAX_LANG_VAR_STRING + 1];
-
-						exist = GetGVarString("zlang_vars_name", temp, .id = strings_with_vars - 1);
-
-						if (!exist || strcmp(varname, temp, true)) {
-							SetGVarString("zlang_vars_name", varname, strings_with_vars);
-							strings_with_vars++;
-						}
+					if (!exist || strcmp(varname, temp, true)) {
+						SetGVarString("zlang_vars_name", varname, strings_with_vars);
+						strings_with_vars++;
 					}
 				}
 			}
 		}
 
-		if (sep_spos > 0 && sep_epos > 0) {
-			string[i] = '\0';
-			_Lang_SetText(lang, varname, string[sep_epos]);
-		}
+		string[i] = '\0';
+		_Lang_SetText(lang, varname, string[sep_epos]);
 	}
 
 	// vars processing
@@ -448,7 +429,9 @@ stock Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_
 	gLangFiles[_:lang][fid][0] = '\0';
 
 	new
-		sep_pos,
+		sep_found,
+		sep_spos,
+		sep_epos,
 		string[MAX_LANG_VAR_STRING + MAX_LANG_SEPARATOR_STRING + MAX_LANG_VALUE_STRING + 1];
 
 	while (fread(flang, string, sizeof(string))) {
@@ -458,15 +441,12 @@ stock Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_
 			}
 		}
 
-		sep_pos = strfind(string, " ");
-		if (sep_pos == -1) {
-			sep_pos = strfind(string, "\t");
-			if (sep_pos == -1) {
-				continue;
-			}
+		sep_found = _Lang_FindSeparatorPositions(string, sep_spos, sep_epos);
+		if (!sep_found) {
+			continue;
 		}
 
-		strmid(string, string, 0, sep_pos);
+		strmid(string, string, 0, sep_spos);
 		Lang_RemoveText(lang, string);
 	}
 
@@ -1213,6 +1193,42 @@ stock Lang_ProcessDynamicVars(Lang:lang, text[], const size = sizeof(text))
 		strdel(text, spos, epos + 1);
 		format(text, size, "%.*s%s%s", spos, text, valtmp, text[spos]);
 	}
+}
+
+static stock _Lang_FindSeparatorPositions(const string[], &start_pos, &end_pos)
+{
+	new
+		sep_spos = -1,
+		sep_epos = -1;
+
+	for (new i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
+		if (sep_spos < 0 || sep_epos < 0) {
+			// get separator pos
+			if (sep_spos == -1) {
+				if (string[i] == ' ' || string[i] == '\t') {
+					sep_spos = i;
+				}
+			} else if (sep_epos == -1) {
+				if (string[i] == '=') {
+					sep_epos = -2;
+				} else {
+					sep_spos = -1;
+				}
+			} else if (sep_epos == -2) {
+				if (string[i] != ' ' && string[i] != '\t') {
+					sep_epos = i;
+				}
+			}
+
+			// if separator is found
+			if (sep_spos > 0 && sep_epos > 0) {
+				start_pos = sep_spos;
+				end_pos = sep_epos;
+				return 1;
+			}
+		}
+	}
+	return 0;
 }
 
 /*
