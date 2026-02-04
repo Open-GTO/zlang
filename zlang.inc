@@ -4,6 +4,7 @@
 	Author: ziggi
 
 */
+
 #if !defined _samp_included
 	#error Please include a_samp or a_npc before zlang
 #endif
@@ -29,6 +30,12 @@
 /*
 	Defines
 */
+
+#if !defined _INC_open_mp
+	#if defined LANG_OPTIMIZATION_MACROS
+		#undef LANG_OPTIMIZATION_MACROS
+	#endif
+#endif
 
 #if !defined MAX_LANGS
 	#define MAX_LANGS (2)
@@ -122,6 +129,39 @@ static
 	gLangCount,
 	Lang:gDefaultLang,
 	Lang:gPlayerLang[MAX_PLAYERS];
+
+/*
+	Macros for optimization
+*/
+
+#if defined LANG_OPTIMIZATION_MACROS
+
+new
+	g_ZPlayerLangText[MAX_LANG_FORMAT_STRING + 1];
+
+#if defined ENABLE_LANG_DYNAMIC_VARS
+
+#define Lang_SendText(%0,%1) \
+	Helper_Lang_SendText(%0, %1, g_ZPlayerLangText); \
+	SendClientMessage(%0, -1, g_ZPlayerLangText)
+
+#define Lang_SendTextF(%0,%1, \
+	Helper_Lang_SendText(%0, %1, g_ZPlayerLangText); \
+	SendClientMessage(%0, -1, g_ZPlayerLangText,
+
+#else
+
+#define Lang_SendText(%0,%1) \
+	Lang_GetText(Lang_GetPlayerLang(%0), %1, g_ZPlayerLangText); \
+	SendClientMessage(%0, -1, g_ZPlayerLangText)
+
+#define Lang_SendTextF(%0,%1, \
+	Lang_GetText(Lang_GetPlayerLang(%0), %1, g_ZPlayerLangText); \
+	SendClientMessage(%0, -1, g_ZPlayerLangText,
+
+#endif
+
+#endif
 
 /*
 	Forwards
@@ -830,6 +870,8 @@ stock Lang_printex(Lang:lang, const var[])
 	Player text functions
 */
 
+#if !defined LANG_OPTIMIZATION_MACROS
+
 stock Lang_SendText(playerid, const var[], lang_args<>)
 {
 	static
@@ -846,6 +888,25 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 
 	return SendClientMessage(playerid, -1, text);
 }
+
+#else
+
+#if defined ENABLE_LANG_DYNAMIC_VARS
+
+stock Helper_Lang_SendText(playerid, const var[], text[], const size = sizeof(text))
+{
+	static
+		Lang:lang;
+
+	lang = Lang_GetPlayerLang(playerid);
+
+	Lang_GetText(lang, var, text, size);
+	Lang_ProcessDynamicVars(lang, text, size);
+}
+
+#endif
+
+#endif
 
 stock Lang_SendTextToAll(const var[], lang_args<>)
 {
