@@ -839,12 +839,20 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
+
+#if !defined _INC_open_mp
 	Lang_format(text, sizeof(text), text, lang_start<2>);
+#endif
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
 
+#if !defined _INC_open_mp
 	return SendClientMessage(playerid, -1, text);
+#else
+	return Lang_SendClientMessage(playerid, text, lang_start<2>);
+#endif
 }
 
 stock Lang_SendTextToAll(const var[], lang_args<>)
@@ -1355,3 +1363,77 @@ stock Lang_format(out[], size, const fmat[], lang_:STATIC_ARGS)
 
 	return 0;
 }
+
+// open.mp
+#if defined _INC_open_mp
+
+// Function SendClientMessage
+static stock Lang_SendClientMessage(playerid, const fmat[], lang_:STATIC_ARGS)
+{
+	static
+		YSI_g_sHeap,
+		YSI_g_sStack,
+		YSI_g_sArgCount,
+		YSI_g_sArgs[5];
+
+	//P:C(if (_:STATIC_ARGS < 1) P:W("No static args found, please add a dummy local"););
+	// Get the number of parameters.
+	#emit LOAD.S.alt   STATIC_ARGS
+	#emit DEC.alt      // 2 - n
+	#emit SHL.C.alt    2
+	// "alt" now contains the number of static arguments in bytes - 4.
+
+	// Get the previous parameter count.
+	#emit LOAD.S.pri   0
+	#emit ADD.C        8
+	#emit LOAD.I
+	#emit SUB
+	#emit ADD.C        8
+	#emit STOR.pri     YSI_g_sArgCount // "format"s parameter count.
+
+	// Get the address of the arguments we are replacing.
+	#emit LOAD.S.pri   0
+	#emit ADD
+
+	// Copy them to our temporary buffer.
+	#emit CONST.alt    YSI_g_sArgs
+	#emit MOVS         16 // (n + 1) * 4
+
+	// Go to the new "top" of the stack.
+	#emit STACK        0
+	#emit STOR.alt     YSI_g_sStack    // Store it.
+	#emit ADD.C        16 // (n + 1) * 4
+	#emit SCTRL        4
+
+	// "frm" is still valid.
+	#emit PUSH.S       fmat
+	#emit PUSH.C       0xFFFFFFFF
+	#emit PUSH.S       playerid
+	#emit PUSH         YSI_g_sArgCount // Push the parameter count.
+
+	// Modify the heap to hold "locals".
+	#emit HEAP         0
+	#emit STOR.alt     YSI_g_sHeap
+	#emit LCTRL        4
+	#emit SCTRL        2
+
+	// Call the function.
+	#emit SYSREQ.C     SendClientMessage
+	#emit STOR.pri     YSI_g_sArgCount
+
+	// Copy the data back.
+	#emit LOAD.pri     YSI_g_sHeap
+	#emit SCTRL        2
+	#emit STACK        0
+	#emit CONST.pri    YSI_g_sArgs
+	#emit MOVS         16
+	#emit LOAD.pri     YSI_g_sStack
+	#emit SCTRL        4
+
+	#emit LOAD.pri     YSI_g_sArgCount
+	#emit RETN
+
+	return 0;
+}
+
+#endif
