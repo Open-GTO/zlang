@@ -47,7 +47,7 @@
 #endif
 
 #if !defined MAX_LANG_VAR_STRING
-	#define MAX_LANG_VAR_STRING (MAX_LANGS + 144)
+	#define MAX_LANG_VAR_STRING (6 + 144)
 #endif
 
 #if !defined MAX_LANG_VALUE_STRING
