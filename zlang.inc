@@ -47,7 +47,7 @@
 #endif
 
 #if !defined MAX_LANG_VAR_STRING
-	#define MAX_LANG_VAR_STRING (144)
+	#define MAX_LANG_VAR_STRING (MAX_LANGS + 144)
 #endif
 
 #if !defined MAX_LANG_VALUE_STRING
@@ -84,12 +84,6 @@
 
 #if !defined MAX_LANG_FILENAME
 	#define MAX_LANG_FILENAME (256)
-#endif
-
-#if defined ZLANG_DISABLE_GVAR
-	#if !defined MAX_LANG_SVAR_NAME
-		#define MAX_LANG_SVAR_NAME (MAX_LANGS + MAX_LANG_VAR_STRING)
-	#endif
 #endif
 
 #define INVALID_LANG_ID (Lang:-1)
@@ -290,11 +284,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		idx,
 		symbol,
 		length,
-	#if !defined ZLANG_DISABLE_GVAR
-		strings_with_vars;
-	#else
-		bool:isProcessSvar = false;
-	#endif
+		bool:isProcessVar = false;
 
 	while (fread(flang, string, sizeof(string))) {
 		switch (string[0]) {
@@ -372,8 +362,8 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 						length++;
 						symbol = string[i + length + 1];
 					} while (   '0' <= symbol <= '9'
-					         || 'A' <= symbol <= 'F'
-					         || 'a' <= symbol <= 'f');
+							 || 'A' <= symbol <= 'F'
+							 || 'a' <= symbol <= 'f');
 
 					for (idx = 1; idx <= length; idx++) {
 						symbol = string[i + idx];
@@ -397,20 +387,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 					strdel(string, i + 1, i + length + 1);
 				}
 				case 'v': {
-				#if !defined ZLANG_DISABLE_GVAR
-					new
-						exist,
-						temp[MAX_LANG_VAR_STRING + 1];
-
-					exist = GetGVarString("zlang_vars_name", temp, .id = strings_with_vars - 1);
-
-					if (!exist || strcmp(varname, temp, true)) {
-						SetGVarString("zlang_vars_name", varname, strings_with_vars);
-						strings_with_vars++;
-					}
-				#else
-					isProcessSvar = true;
-				#endif
+					isProcessVar = true;
 				}
 			}
 		}
@@ -418,18 +395,11 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		string[i] = '\0';
 		_Lang_SetText(lang, varname, string[sep_epos]);
 
-	#if defined ZLANG_DISABLE_GVAR
-		if (isProcessSvar) {
-			isProcessSvar = false;
-			_Lang_ProcessSVars(lang, varname);
+		if (isProcessVar) {
+			isProcessVar = false;
+			_Lang_ProcessVars(lang, varname);
 		}
-	#endif
 	}
-
-#if !defined ZLANG_DISABLE_GVAR
-	// vars processing
-	_Lang_ProcessGVars(lang, strings_with_vars);
-#endif
 
 	fclose(flang);
 	return fid;
@@ -687,12 +657,7 @@ stock Lang_SetText(Lang:lang, const var[], const text[])
 	new res = _Lang_SetText(lang, var_temp, text);
 
 	if (strfind(text, "\\v(", true) != -1) {
-	#if !defined ZLANG_DISABLE_GVAR
-		SetGVarString("zlang_vars_name", var, 0);
-		_Lang_ProcessGVars(lang, 1);
-	#else
-		_Lang_ProcessSVars(lang, var_temp);
-	#endif
+		_Lang_ProcessVars(lang, var_temp);
 	}
 
 	return res;
@@ -1075,17 +1040,62 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[]
 }
 
 /*
-	Private functions
+	Vars
 */
 
-#if defined ZLANG_DISABLE_GVAR
-
-static stock _Lang_GetSVar(Lang:lang, const var[], svarname[], const size = sizeof(svarname))
+static stock _Lang_SetVarString(Lang:lang, const var[], const text[])
 {
-	format(svarname, size, "%d%s", _:lang, var);
+#if !defined ZLANG_DISABLE_GVAR
+	return SetGVarString(var, text, LANG_VAR_OFFSET + _:lang);
+#else
+	#pragma unused lang
+	return SetSVarString(var, text);
+#endif
 }
 
+static stock _Lang_GetVarString(Lang:lang, const var[], text[], const size = sizeof(text))
+{
+#if !defined ZLANG_DISABLE_GVAR
+	return GetGVarString(var, text, size, LANG_VAR_OFFSET + _:lang);
+#else
+	#pragma unused lang
+	return GetSVarString(var, text, size);
 #endif
+}
+
+static stock _Lang_DeleteVar(Lang:lang, const var[])
+{
+#if !defined ZLANG_DISABLE_GVAR
+	return DeleteGVar(var, LANG_VAR_OFFSET + _:lang);
+#else
+	#pragma unused lang
+	return DeleteSVar(var);
+#endif
+}
+
+static stock _Lang_GetVarType(Lang:lang, const var[])
+{
+#if !defined ZLANG_DISABLE_GVAR
+	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
+#else
+	#pragma unused lang
+	return GetSVarType(var) != SERVER_VARTYPE_NONE;
+#endif
+}
+
+static stock _Lang_ConvertVar(Lang:lang, const var[], varname[], const size = sizeof(varname))
+{
+#if !defined ZLANG_DISABLE_GVAR
+	#pragma unused lang
+	strcat((varname[0] = EOS, varname), var, size);
+#else
+	format(varname, size, "%d%s", _:lang, var);
+#endif
+}
+
+/*
+	Private functions
+*/
 
 static stock _Lang_FindFile(Lang:lang, const filename[])
 {
@@ -1119,15 +1129,11 @@ static stock _Lang_GetFreeFileSlot(Lang:lang)
 
 static stock _Lang_SetText(Lang:lang, const var[], const text[])
 {
-#if !defined ZLANG_DISABLE_GVAR
-	return SetGVarString(var, text, LANG_VAR_OFFSET + _:lang);
-#else
 	static
-		svarname[MAX_LANG_SVAR_NAME + 1];
+		varname[MAX_LANG_VAR_STRING + 1];
 
-	_Lang_GetSVar(lang, var, svarname);
-	return SetSVarString(svarname, text);
-#endif
+	_Lang_ConvertVar(lang, var, varname);
+	return _Lang_SetVarString(lang, varname, text);
 }
 
 static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(text))
@@ -1136,31 +1142,18 @@ static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(t
 		success,
 		i,
 		text_multi[MAX_LANG_VALUE_STRING],
-	#if !defined ZLANG_DISABLE_GVAR
+		var_name[MAX_LANG_VAR_STRING + 1],
 		var_multi[MAX_LANG_VAR_STRING + 6];
-	#else
-		var_multi[MAX_LANG_SVAR_NAME + 6],
-		svarname[MAX_LANG_SVAR_NAME + 1];
-	#endif
 
-#if !defined ZLANG_DISABLE_GVAR
-	success = GetGVarString(var, text, size, LANG_VAR_OFFSET + _:lang);
-#else
-	_Lang_GetSVar(lang, var, svarname);
-	success = GetSVarString(svarname, text, size);
-#endif
+	_Lang_ConvertVar(lang, var, var_name);
+	success = _Lang_GetVarString(lang, var_name, text, size);
 
 	if (!success) {
 		i = 0;
 
 		do {
-		#if !defined ZLANG_DISABLE_GVAR
-			format(var_multi, sizeof(var_multi), "%s_%d", var, i);
-			success = GetGVarString(var_multi, text_multi, sizeof(text_multi), LANG_VAR_OFFSET + _:lang);
-		#else
-			format(var_multi, sizeof(var_multi), "%s_%d", svarname, i);
-			success = GetSVarString(var_multi, text_multi, sizeof(text_multi));
-		#endif
+			format(var_multi, sizeof(var_multi), "%s_%d", var_name, i);
+			success = _Lang_GetVarString(lang, var_multi, text_multi, sizeof(text_multi));
 
 			if (success) {
 				if (i == 0) {
@@ -1181,95 +1174,29 @@ static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(t
 
 static stock _Lang_RemoveText(Lang:lang, const var[])
 {
-#if !defined ZLANG_DISABLE_GVAR
-	return DeleteGVar(var, LANG_VAR_OFFSET + _:lang);
-#else
 	static
-		svarname[MAX_LANG_SVAR_NAME + 1];
+		varname[MAX_LANG_VAR_STRING + 1];
 
-	_Lang_GetSVar(lang, var, svarname);
-	return DeleteSVar(svarname);
-#endif
+	_Lang_ConvertVar(lang, var, varname);
+	return _Lang_DeleteVar(lang, varname);
 }
 
 static stock _Lang_IsTextExists(Lang:lang, const var[])
 {
-#if !defined ZLANG_DISABLE_GVAR
-	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
-#else
 	static
-		svarname[MAX_LANG_SVAR_NAME + 1];
+		varname[MAX_LANG_VAR_STRING + 1];
 
-	_Lang_GetSVar(lang, var, svarname);
-	return GetSVarType(svarname) != SERVER_VARTYPE_NONE;
-#endif
+	_Lang_ConvertVar(lang, var, varname);
+	return _Lang_GetVarType(lang, varname);
 }
 
-#if !defined ZLANG_DISABLE_GVAR
-
-static stock _Lang_ProcessGVars(Lang:lang, strings_with_vars)
+static stock _Lang_ProcessVars(Lang:lang, const var[])
 {
 	new
-		i,
 		spos,
 		epos,
-		varname[MAX_LANG_VAR_STRING + 1],
 		varvalue[MAX_LANG_VALUE_STRING + 1],
-		bool:next_iteration,
 		vartmp[MAX_LANG_VAR_STRING + 1],
-		valtmp[MAX_LANG_VALUE_STRING + 1];
-
-	do {
-		next_iteration = false;
-
-		for (i = 0; i < strings_with_vars; i++) {
-			if (!GetGVarString("zlang_vars_name", varname, .id = i)) {
-				continue;
-			}
-
-			_Lang_GetText(lang, varname, varvalue);
-
-			while ((spos = strfind(varvalue, "\\v(", true, spos)) != -1) {
-				next_iteration = true;
-
-				epos = strfind(varvalue, ")", true, spos);
-				if (epos == -1) {
-					next_iteration = false;
-					printf("Error: error with using language variables, example of usage: \\v(VARIABLE)");
-					break;
-				}
-
-				strmid(vartmp, varvalue, spos + 3, epos);
-
-				if (vartmp[0] == '%' && vartmp[1] == 's') {
-					spos += 1;
-					_Lang_SetText(lang, varname, varvalue);
-
-					continue;
-				}
-
-				_Lang_GetText(lang, vartmp, valtmp);
-
-				strdel(varvalue, spos, epos + 1);
-				format(varvalue, sizeof(varvalue), "%.*s%s%s", spos, varvalue, valtmp, varvalue[spos]);
-
-				_Lang_SetText(lang, varname, varvalue);
-			}
-
-			DeleteGVar("zlang_vars_name", i);
-		}
-	} while (next_iteration);
-}
-
-#else
-
-static stock _Lang_ProcessSVars(Lang:lang, const var[])
-{
-	new
-		spos,
-		epos,
-		varvalue[MAX_LANG_VALUE_STRING + 1],
-		vartmp[MAX_LANG_SVAR_NAME + 1],
 		valtmp[MAX_LANG_VALUE_STRING + 1];
 
 	_Lang_GetText(lang, var, varvalue);
@@ -1297,8 +1224,6 @@ static stock _Lang_ProcessSVars(Lang:lang, const var[])
 		_Lang_SetText(lang, var, varvalue);
 	}
 }
-
-#endif
 
 stock Lang_ProcessDynamicVars(Lang:lang, text[], const size = sizeof(text))
 {
