@@ -2,7 +2,7 @@
 GVar per player lang system
 
 # Requirements
-- [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin)
+- [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin) - when using opem.mp of course, it is possible not to use the GVar plugin, just set `ZLANG_DISABLE_GVAR` before connecting the script.
 - [foreach](https://github.com/Open-GTO/foreach) - not necessary but recommended
 
 # Libraries compatible with zlang
