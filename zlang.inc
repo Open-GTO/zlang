@@ -1,6 +1,6 @@
 /*
 
-	About: GVar per player lang system
+	About: Per-player language system using GVar or SVar.
 	Author: ziggi
 
 */
@@ -20,7 +20,11 @@
 */
 
 #if !defined LANG_USE_SVAR && !defined LANG_USE_GVAR
-	#define LANG_USE_GVAR
+	#if defined SetGVarString
+		#define LANG_USE_GVAR
+	#else
+		#define LANG_USE_SVAR
+	#endif
 #endif
 
 #if defined LANG_USE_SVAR && defined LANG_USE_GVAR
