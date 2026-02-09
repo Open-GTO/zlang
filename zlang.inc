@@ -1112,21 +1112,6 @@ static stock _Lang_DeleteVar(Lang:lang, const var[])
 #endif
 }
 
-static stock _Lang_GetVarType(Lang:lang, const var[])
-{
-#if defined LANG_USE_GVAR
-	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
-#endif
-
-#if defined LANG_USE_SVAR
-	static
-		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
-
-	_Lang_ConvertVar(lang, var, varname);
-	return GetSVarType(varname) != SERVER_VARTYPE_NONE;
-#endif
-}
-
 /*
 	SVar functions
 */
@@ -1220,7 +1205,17 @@ static stock _Lang_RemoveText(Lang:lang, const var[])
 
 static stock _Lang_IsTextExists(Lang:lang, const var[])
 {
-	return _Lang_GetVarType(lang, var);
+#if defined LANG_USE_GVAR
+	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
+#endif
+
+#if defined LANG_USE_SVAR
+	static
+		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
+
+	_Lang_ConvertVar(lang, var, varname);
+	return GetSVarType(varname) != SERVER_VARTYPE_NONE;
+#endif
 }
 
 static stock _Lang_ProcessVars(Lang:lang, const var[])
