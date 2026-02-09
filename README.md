@@ -2,7 +2,7 @@
 GVar per player lang system
 
 # Requirements
-- [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin) - when using opem.mp of course, it is possible not to use the GVar plugin, just set `LANG_USE_SVAR` before connecting the script.
+- [GVar plugin](https://github.com/samp-incognito/samp-gvar-plugin) - when using open.mp, the GVar plugin is optional - simply define `LANG_USE_SVAR` before your script.
 - [foreach](https://github.com/Open-GTO/foreach) - not necessary but recommended
 
 # Libraries compatible with zlang
