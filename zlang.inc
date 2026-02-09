@@ -14,7 +14,11 @@
 
 // Method of using variables
 #if !defined LANG_USE_SVAR && !defined LANG_USE_GVAR
-  #define LANG_USE_GVAR
+	#define LANG_USE_GVAR
+#endif
+
+#if defined LANG_USE_SVAR && defined LANG_USE_GVAR
+	#error You cannot use LANG_USE_SVAR and LANG_USE_GVAR at the same time
 #endif
 
 // Include GVar
@@ -1123,17 +1127,18 @@ static stock _Lang_GetVarType(Lang:lang, const var[])
 #endif
 }
 
-static stock _Lang_ConvertVar(Lang:lang, const var[], varname[], const size = sizeof(varname))
-{
-#if defined LANG_USE_GVAR
-	#pragma unused lang
-	_Lang_strcpy(varname, var, size);
-#endif
+/*
+	SVar functions
+*/
 
 #if defined LANG_USE_SVAR
+
+static stock _Lang_ConvertVar(Lang:lang, const var[], varname[], const size = sizeof(varname))
+{
 	format(varname, size, LANG_SVAR_VARNAME_MASK, _:lang, var);
-#endif
 }
+
+#endif
 
 /*
 	Private functions
