@@ -421,7 +421,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 
 		if (is_process_var) {
 			is_process_var = false;
-			_Lang_ProcessVars(lang, varname);
+			_Lang_ProcessVar(lang, varname);
 		}
 	}
 
@@ -681,7 +681,7 @@ stock Lang_SetText(Lang:lang, const var[], const text[])
 	new res = _Lang_SetText(lang, var_temp, text);
 
 	if (strfind(text, "\\v(", true) != -1) {
-		_Lang_ProcessVars(lang, var_temp);
+		_Lang_ProcessVar(lang, var_temp);
 	}
 
 	return res;
@@ -1218,7 +1218,7 @@ static stock _Lang_IsTextExists(Lang:lang, const var[])
 #endif
 }
 
-static stock _Lang_ProcessVars(Lang:lang, const var[])
+static stock _Lang_ProcessVar(Lang:lang, const var[])
 {
 	new
 		spos,
