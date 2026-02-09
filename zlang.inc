@@ -2,17 +2,23 @@
 
 	About: GVar per player lang system
 	Author: ziggi
-	Description: by default, the GVar plugin is used,
-	but when using opem.mp of course, it can be excluded by adding `LANG_USE_SVAR`
 
 */
 
-// Checking for sa-mp included
 #if !defined _samp_included
 	#error Please include a_samp or a_npc before zlang
 #endif
 
-// Method of using variables
+#if defined _zlang_included
+	#endinput
+#endif
+
+#define _zlang_included
+
+/*
+	SVar and GVar
+*/
+
 #if !defined LANG_USE_SVAR && !defined LANG_USE_GVAR
 	#define LANG_USE_GVAR
 #endif
@@ -21,7 +27,6 @@
 	#error You cannot use LANG_USE_SVAR and LANG_USE_GVAR at the same time
 #endif
 
-// Include GVar
 #if defined LANG_USE_GVAR
 	#if !defined SetGVarString
 		#tryinclude "gvar"
@@ -35,13 +40,6 @@
 		#error Please include gvar before zlang
 	#endif
 #endif
-
-// zlang
-#if defined _zlang_included
-	#endinput
-#endif
-
-#define _zlang_included
 
 /*
 	Defines
@@ -99,7 +97,6 @@
 	#define MAX_LANG_FILENAME (256)
 #endif
 
-// SVar
 #if defined LANG_USE_SVAR
 	#if !defined MAX_LANG_PREFIX_SVAR_STRING
 		#define MAX_LANG_PREFIX_SVAR_STRING (7 + MAX_LANG_VAR_STRING)
@@ -403,7 +400,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 						string[i] += symbol * _Lang_pow(16, length - idx);
 					}
 
-					// gvar is not support symbols with negative code
+					// gvar does not support symbols with negative codes
 					if (string[i] < 0) {
 						string[i] = ' ';
 					}
@@ -781,7 +778,6 @@ stock Lang_IsTextExists(Lang:lang, const var[])
 	Print functions
 */
 
-// printf
 stock Lang_printf(const var[], lang_args<>)
 {
 	static
@@ -822,7 +818,6 @@ stock Lang_printfex(Lang:lang, const var[], lang_args<>)
 	return success;
 }
 
-// print
 stock Lang_print(const var[])
 {
 	static
@@ -1285,7 +1280,7 @@ static stock _Lang_FindSeparatorPositions(const string[], &start_pos, &end_pos)
 
 	for (new i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
 		if (sep_spos < 0 || sep_epos < 0) {
-			// get separator pos
+			// get the separator position
 			if (sep_spos == -1) {
 				if (string[i] == ' ' || string[i] == '\t') {
 					sep_spos = i;
@@ -1302,7 +1297,7 @@ static stock _Lang_FindSeparatorPositions(const string[], &start_pos, &end_pos)
 				}
 			}
 
-			// if separator is found
+			// if a separator is found
 			if (sep_spos > 0 && sep_epos > 0) {
 				start_pos = sep_spos;
 				end_pos = sep_epos;
@@ -1441,7 +1436,6 @@ stock Lang_format(out[], size, const fmat[], lang_:STATIC_ARGS)
 // open.mp
 #if defined _INC_open_mp
 
-// Function SendClientMessage
 static stock Lang_SendClientMessage(playerid, const fmat[], lang_:STATIC_ARGS)
 {
 	static
