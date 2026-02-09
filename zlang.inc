@@ -13,16 +13,8 @@
 #endif
 
 // Method of using variables
-#if !defined LANG_USE_SVAR
-	// GVar
-	#if !defined LANG_USE_GVAR
-		#define LANG_USE_GVAR
-	#endif
-#else
-	// GVar
-	#if defined LANG_USE_GVAR
-		#undef LANG_USE_GVAR
-	#endif
+#if !defined LANG_USE_SVAR && !defined LANG_USE_GVAR
+  #define LANG_USE_GVAR
 #endif
 
 // Include GVar
