@@ -309,7 +309,6 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		sep_spos,
 		sep_epos,
 		varname[MAX_LANG_VAR_STRING + 1],
-		varvalue[MAX_LANG_VALUE_STRING + 1],
 		string[MAX_LANG_VAR_STRING + MAX_LANG_SEPARATOR_STRING + MAX_LANG_VALUE_STRING + 1],
 		idx,
 		symbol,
