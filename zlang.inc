@@ -578,7 +578,6 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 
 				strmid(varname, string, 0, sep_spos);
 
-				_Lang_GetVarString(lang, varname, varvalue);
 				_Lang_ProcessVar(lang, varname);
 				strings_with_vars--;
 			}
