@@ -72,6 +72,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		return 1;
 	}
 
+	if (strcmp(cmdtext, "/multiline", true, 5) == 0) {
+		Lang_SendText(playerid, "MULTILINE_EXAMPLE");
+		// Line 1,line 2,line 3.
+		return 1;
+	}
+
 	return 0;
 }
 ```
@@ -82,6 +88,9 @@ COLOR_GRAY = {CCCCCC}
 LANGUAGE_CHANGED = \v(COLOR_GRAY)Now you are using english language.
 HELLO_MSG = Hello, {00FF00}World!
 COMMANDS_LIST = Commands: /help, /en, /ru
+MULTILINE_EXAMPLE_0 = Line 1,
+MULTILINE_EXAMPLE_1 = line 2,
+MULTILINE_EXAMPLE_2 = line 3.
 ```
 
 **scriptfiles/ru.ini:**
@@ -90,6 +99,9 @@ COLOR_GRAY = {CCCCCC}
 LANGUAGE_CHANGED = \v(COLOR_GRAY)Теперь вы используете русский язык.
 HELLO_MSG = Привет, {00FF00}Мир!
 COMMANDS_LIST = Команды: /help, /en, /ru
+MULTILINE_EXAMPLE_0 = Строка 1,
+MULTILINE_EXAMPLE_1 = строка 2,
+MULTILINE_EXAMPLE_2 = строка 3.
 # since zlang 3.3.0
 Hello, World! = \v(HELLO_MSG)
 Commands: /help, /en, /ru = \v(COMMANDS_LIST)
@@ -141,18 +153,19 @@ MAX_LANGS | 2 | yes
 LANG_VAR_OFFSET | 1000 | yes
 LANG_IGNORED_FIRST_SYMBOL | '\0', '#', ';' | yes
 MAX_LANG_VAR_STRING | 144 | yes
-MAX_LANG_VALUE_STRING | 144 | yes
+MAX_LANG_VALUE_STRING | 288 | yes
+MAX_LANG_FORMAT_STRING | 144 | yes
+MAX_LANG_MULTI_LINES | 25 | yes
+MAX_LANG_MVALUE_STRING | MAX_LANG_VALUE_STRING * MAX_LANG_MULTI_LINES | yes
+MAX_LANG_MFORMAT_STRING | MAX_LANG_FORMAT_STRING * MAX_LANG_MULTI_LINES | yes
 MAX_LANG_SEPARATOR_STRING | 64 | yes
-MAX_LANG_MVALUE_STRING | MAX_LANG_VALUE_STRING * 25 | yes
-MAX_LANG_FORMAT_STRING | MAX_LANG_VALUE_STRING | yes
-MAX_LANG_MFORMAT_STRING | MAX_LANG_MVALUE_STRING | yes
 MAX_LANG_CODE | 2 | yes
 MAX_LANG_NAME | 16 | yes
 MAX_LANG_FILES | 5 | yes
 MAX_LANG_FILENAME | 256 | yes
 ENABLE_LANG_DYNAMIC_VARS | (disabled) | yes
 LANG_SVAR_VARNAME_MASK | "lng%d_%s" | yes
-MAX_LANG_PREFIX_SVAR_STRING | (7 + MAX_LANG_VAR_STRING) | yes
+MAX_LANG_PREFIX_SVAR_STRING | 7 + MAX_LANG_VAR_STRING | yes
 INVALID_LANG_ID | Lang:-1 | no
 INVALID_LANG_FILE_ID | -1 | no
 
