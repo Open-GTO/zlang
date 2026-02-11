@@ -891,7 +891,20 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 	static
 		playerid,
 		Lang:lang,
-		text[MAX_LANG_FORMAT_STRING];
+		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
+
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+		if (_Lang_GetSlotStatus(lang) == LANG_SLOT_FREE) {
+			continue;
+		}
+
+		Lang_GetText(lang, var, text[lang]);
+		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<1>);
+
+#if defined ENABLE_LANG_DYNAMIC_VARS
+		Lang_ProcessDynamicVars(lang, text[lang]);
+#endif
+	}
 
 #if defined foreach
 	foreach (playerid : Player) {
@@ -901,38 +914,33 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 			continue;
 		}
 #endif
-		lang = Lang_GetPlayerLang(playerid);
-
-		Lang_GetText(lang, var, text);
-		Lang_format(text, sizeof(text), text, lang_start<1>);
-#if defined ENABLE_LANG_DYNAMIC_VARS
-		Lang_ProcessDynamicVars(lang, text);
-#endif
-
-		SendClientMessage(playerid, -1, text);
+		SendClientMessage(playerid, -1, text[Lang_GetPlayerLang(playerid)]);
 	}
-	return 1;
 }
 
-stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
+stock Lang_SendTextToPlayers(const players[], const size = sizeof(players), const var[], lang_args<>)
 {
 	static
 		idx,
 		Lang:lang,
-		text[MAX_LANG_FORMAT_STRING];
+		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
-		lang = Lang_GetPlayerLang(players[idx]);
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+		if (_Lang_GetSlotStatus(lang) == LANG_SLOT_FREE) {
+			continue;
+		}
 
-		Lang_GetText(lang, var, text);
-		Lang_format(text, sizeof(text), text, lang_start<2>);
+		Lang_GetText(Lang:lang, var, text[lang]);
+		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
-		Lang_ProcessDynamicVars(lang, text);
+		Lang_ProcessDynamicVars(lang, text[lang]);
 #endif
-
-		SendClientMessage(players[idx], -1, text);
 	}
-	return 1;
+
+	for (idx = 0; idx < size && players[idx] != INVALID_PLAYER_ID; idx++) {
+		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
+	}
 }
 
 stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_info[], const var_button1[], const var_button2[], lang_args<>)
@@ -982,7 +990,20 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 	static
 		playerid,
 		Lang:lang,
-		text[MAX_LANG_FORMAT_STRING];
+		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
+
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+		if (_Lang_GetSlotStatus(lang) == LANG_SLOT_FREE) {
+			continue;
+		}
+
+		Lang_GetText(Lang:lang, var, text[lang]);
+		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+
+#if defined ENABLE_LANG_DYNAMIC_VARS
+		Lang_ProcessDynamicVars(lang, text[lang]);
+#endif
+	}
 
 #if defined foreach
 	foreach (playerid : Player) {
@@ -992,18 +1013,8 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 			continue;
 		}
 #endif
-		lang = Lang_GetPlayerLang(playerid);
-
-		Lang_GetText(lang, var, text);
-		Lang_format(text, sizeof(text), text, lang_start<3>);
-#if defined ENABLE_LANG_DYNAMIC_VARS
-		Lang_ProcessDynamicVars(lang, text);
-#endif
-
-		GameTextForPlayer(playerid, text, time, style);
+		GameTextForPlayer(playerid, text[Lang_GetPlayerLang(playerid)], time, style);
 	}
-
-	return GameTextForAll(text, time, style);
 }
 
 stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var[], lang_args<>)
