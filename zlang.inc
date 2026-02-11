@@ -106,11 +106,7 @@
 #endif
 
 #if !defined LANG_TEMP_VAR_STRING_MASK
-	#define LANG_TEMP_VAR_STRING_MASK "lng%d_%d_STRING_TEXT"
-#endif
-
-#if !defined LANG_TEMP_VAR_STRING_COUNT_MASK
-	#define LANG_TEMP_VAR_STRING_COUNT_MASK "lng%d_STRING_COUNT"
+	#define LANG_TEMP_VAR_STRING_MASK "lng%d_%d_VAR_STRING"
 #endif
 
 #if defined LANG_USE_SVAR
@@ -325,8 +321,6 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		length;
 
 	new
-		strings_with_var,
-		strings_with_vars,
 		bool:is_added_string_var,
 		bool:is_valid_checks = true;
 
@@ -361,7 +355,6 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		}
 
 		is_added_string_var = false;
-		strings_with_var = 0;
 
 		for (i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
 			if (string[i] != '\\') {
@@ -438,16 +431,10 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 					if (!is_added_string_var) {
 						is_added_string_var = true;
 						var_count++;
+
+						format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_MASK, var_count);
+						_Lang_SetVarString(lang, var_temp, varname);
 					}
-
-					strings_with_var++;
-					strings_with_vars++;
-
-					format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_MASK, var_count, strings_with_var);
-					_Lang_SetVarString(lang, var_temp, varname);
-
-					format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_COUNT_MASK, var_count);
-					_Lang_SetVarInt(lang, var_temp, strings_with_var);
 				}
 			}
 		}
@@ -457,26 +444,15 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 	}
 	fclose(flang);
 
-	if (!is_valid_checks) {
-		return fid;
-	}
+	if (is_valid_checks) {
+		while (var_count > 0) {
+			format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_MASK, var_count);
 
-	var_count = 0;
-
-	while (strings_with_vars > 0) {
-		var_count++;
-
-		format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_COUNT_MASK, var_count);
-		strings_with_var = _Lang_GetVarInt(lang, var_temp);
-		_Lang_DeleteVar(lang, var_temp);
-
-		for (i = 0; i < strings_with_var; i++) {
-			format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_MASK, var_count, strings_with_var);
 			_Lang_GetVarString(lang, var_temp, varname);
 			_Lang_DeleteVar(lang, var_temp);
 			_Lang_ProcessVar(lang, varname);
 
-			strings_with_vars--;
+			var_count--;
 		}
 	}
 	return fid;
@@ -1117,36 +1093,6 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[]
 /*
 	Vars
 */
-
-static stock _Lang_SetVarInt(Lang:lang, const var[], value)
-{
-#if defined LANG_USE_GVAR
-	return SetGVarInt(var, value, LANG_VAR_OFFSET + _:lang);
-#endif
-
-#if defined LANG_USE_SVAR
-	static
-		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
-
-	_Lang_ConvertVar(lang, var, varname);
-	return SetSVarInt(varname, value);
-#endif
-}
-
-static stock _Lang_GetVarInt(Lang:lang, const var[])
-{
-#if defined LANG_USE_GVAR
-	return GetGVarInt(var, LANG_VAR_OFFSET + _:lang);
-#endif
-
-#if defined LANG_USE_SVAR
-	static
-		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
-
-	_Lang_ConvertVar(lang, var, varname);
-	return GetSVarInt(varname);
-#endif
-}
 
 static stock _Lang_SetVarString(Lang:lang, const var[], const text[])
 {
