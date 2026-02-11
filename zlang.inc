@@ -313,7 +313,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		idx,
 		symbol,
 		length,
-		bool:is_process_var = false;
+		strings_with_vars;
 
 	while (fread(flang, string, sizeof(string))) {
 		switch (string[0]) {
@@ -416,19 +416,26 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 					strdel(string, i + 1, i + length + 1);
 				}
 				case 'v': {
-					is_process_var = true;
+					new
+						exist,
+						temp[MAX_LANG_VAR_STRING + 1];
+
+					exist = _Lang_GetVarString("zlang_vars_name", temp, .id = strings_with_vars - 1);
+
+					if (!exist || strcmp(varname, temp, true)) {
+						_Lang_SetVarString("zlang_vars_name", varname, strings_with_vars);
+						strings_with_vars++;
+					}
 				}
 			}
 		}
 
 		string[i] = '\0';
 		_Lang_SetText(lang, varname, string[sep_epos]);
-
-		if (is_process_var) {
-			is_process_var = false;
-			_Lang_ProcessVar(lang, varname);
-		}
 	}
+
+	// vars processing
+	_Lang_ProcessVars(lang, strings_with_vars);
 
 	fclose(flang);
 	return fid;
@@ -686,7 +693,8 @@ stock Lang_SetText(Lang:lang, const var[], const text[])
 	new res = _Lang_SetText(lang, var_temp, text);
 
 	if (strfind(text, "\\v(", true) != -1) {
-		_Lang_ProcessVar(lang, var_temp);
+		_Lang_SetVarString("zlang_vars_name", var, 0);
+		_Lang_ProcessVars(lang, 1);
 	}
 
 	return res;
@@ -1070,47 +1078,47 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[]
 	Vars
 */
 
-static stock _Lang_SetVarString(Lang:lang, const var[], const text[])
+static stock _Lang_SetVarString(const var[], const text[], id = 0)
 {
 #if defined LANG_USE_GVAR
-	return SetGVarString(var, text, LANG_VAR_OFFSET + _:lang);
+	return SetGVarString(var, text, LANG_VAR_OFFSET + id);
 #endif
 
 #if defined LANG_USE_SVAR
 	static
 		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
 
-	_Lang_ConvertVar(lang, var, varname);
+	_Lang_GetSVarName(id, var, varname);
 	return SetSVarString(varname, text);
 #endif
 }
 
-static stock _Lang_GetVarString(Lang:lang, const var[], text[], const size = sizeof(text))
+static stock _Lang_GetVarString(const var[], text[], const size = sizeof(text), id = 0)
 {
 #if defined LANG_USE_GVAR
-	return GetGVarString(var, text, size, LANG_VAR_OFFSET + _:lang);
+	return GetGVarString(var, text, size, LANG_VAR_OFFSET + id);
 #endif
 
 #if defined LANG_USE_SVAR
 	static
 		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
 
-	_Lang_ConvertVar(lang, var, varname);
+	_Lang_GetSVarName(id, var, varname);
 	return GetSVarString(varname, text, size);
 #endif
 }
 
-static stock _Lang_DeleteVar(Lang:lang, const var[])
+static stock _Lang_DeleteVar(const var[], id = 0)
 {
 #if defined LANG_USE_GVAR
-	return DeleteGVar(var, LANG_VAR_OFFSET + _:lang);
+	return DeleteGVar(var, LANG_VAR_OFFSET + id);
 #endif
 
 #if defined LANG_USE_SVAR
 	static
 		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
 
-	_Lang_ConvertVar(lang, var, varname);
+	_Lang_GetSVarName(id, var, varname);
 	return DeleteSVar(varname);
 #endif
 }
@@ -1121,7 +1129,7 @@ static stock _Lang_DeleteVar(Lang:lang, const var[])
 
 #if defined LANG_USE_SVAR
 
-static stock _Lang_ConvertVar(Lang:lang, const var[], varname[], const size = sizeof(varname))
+static stock _Lang_GetSVarName(Lang:lang, const var[], varname[], const size = sizeof(varname))
 {
 	format(varname, size, LANG_SVAR_VARNAME_MASK, _:lang, var);
 }
@@ -1164,7 +1172,7 @@ static stock _Lang_GetFreeFileSlot(Lang:lang)
 
 static stock _Lang_SetText(Lang:lang, const var[], const text[])
 {
-	return _Lang_SetVarString(lang, var, text);
+	return _Lang_SetVarString(var, text, _:lang);
 }
 
 static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(text))
@@ -1175,14 +1183,14 @@ static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(t
 		text_multi[MAX_LANG_VALUE_STRING],
 		var_multi[MAX_LANG_VAR_STRING + 6];
 
-	success = _Lang_GetVarString(lang, var, text, size);
+	success = _Lang_GetVarString(var, text, size, _:lang);
 
 	if (!success) {
 		i = 0;
 
 		do {
 			format(var_multi, sizeof(var_multi), "%s_%d", var, i);
-			success = _Lang_GetVarString(lang, var_multi, text_multi, sizeof(text_multi));
+			success = _Lang_GetVarString(var_multi, text_multi, sizeof(text_multi), _:lang);
 
 			if (success) {
 				if (i == 0) {
@@ -1203,7 +1211,7 @@ static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(t
 
 static stock _Lang_RemoveText(Lang:lang, const var[])
 {
-	return _Lang_DeleteVar(lang, var);
+	return _Lang_DeleteVar(var, _:lang);
 }
 
 static stock _Lang_IsTextExists(Lang:lang, const var[])
@@ -1216,44 +1224,63 @@ static stock _Lang_IsTextExists(Lang:lang, const var[])
 	static
 		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
 
-	_Lang_ConvertVar(lang, var, varname);
+	_Lang_GetSVarName(lang, var, varname);
 	return GetSVarType(varname) != SERVER_VARTYPE_NONE;
 #endif
 }
 
-static stock _Lang_ProcessVar(Lang:lang, const var[])
+static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
 {
-	new
+	static
+		i,
 		spos,
 		epos,
+		varname[MAX_LANG_VAR_STRING + 1],
 		varvalue[MAX_LANG_VALUE_STRING + 1],
+		bool:next_iteration,
 		vartmp[MAX_LANG_VAR_STRING + 1],
 		valtmp[MAX_LANG_VALUE_STRING + 1];
 
-	_Lang_GetText(lang, var, varvalue);
+	do {
+		next_iteration = false;
 
-	while ((spos = strfind(varvalue, "\\v(", true, spos)) != -1) {
-		epos = strfind(varvalue, ")", true, spos);
-		if (epos == -1) {
-			printf("Error: error with using language variables, example of usage: \\v(VARIABLE)");
-			return;
+		for (i = 0; i < strings_with_vars; i++) {
+			if (!_Lang_GetVarString("zlang_vars_name", varname, .id = i)) {
+				continue;
+			}
+
+			_Lang_GetText(lang, varname, varvalue);
+
+			while ((spos = strfind(varvalue, "\\v(", true, spos)) != -1) {
+				next_iteration = true;
+
+				epos = strfind(varvalue, ")", true, spos);
+				if (epos == -1) {
+					next_iteration = false;
+					printf("Error: error with using language variables, example of usage: \\v(VARIABLE)");
+					break;
+				}
+
+				strmid(vartmp, varvalue, spos + 3, epos);
+
+				if (vartmp[0] == '%' && vartmp[1] == 's') {
+					spos += 1;
+					_Lang_SetText(lang, varname, varvalue);
+
+					continue;
+				}
+
+				_Lang_GetText(lang, vartmp, valtmp);
+
+				strdel(varvalue, spos, epos + 1);
+				format(varvalue, sizeof(varvalue), "%.*s%s%s", spos, varvalue, valtmp, varvalue[spos]);
+
+				_Lang_SetText(lang, varname, varvalue);
+			}
+
+			_Lang_DeleteVar("zlang_vars_name", i);
 		}
-
-		strmid(vartmp, varvalue, spos + 3, epos);
-
-		if (vartmp[0] == '%' && vartmp[1] == 's') {
-			spos += 1;
-			_Lang_SetText(lang, var, varvalue);
-			return;
-		}
-
-		_Lang_GetText(lang, vartmp, valtmp);
-
-		strdel(varvalue, spos, epos + 1);
-		format(varvalue, sizeof(varvalue), "%.*s%s%s", spos, varvalue, valtmp, varvalue[spos]);
-
-		_Lang_SetText(lang, var, varvalue);
-	}
+	} while (next_iteration);
 }
 
 stock Lang_ProcessDynamicVars(Lang:lang, text[], const size = sizeof(text))
