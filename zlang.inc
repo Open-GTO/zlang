@@ -105,6 +105,14 @@
 	#define MAX_LANG_FILENAME (256)
 #endif
 
+#if !defined LANG_TEMP_VAR_STRING_MASK
+	#define LANG_TEMP_VAR_STRING_MASK "lng%d_%d_STRING_TEXT"
+#endif
+
+#if !defined LANG_TEMP_VAR_STRING_COUNT_MASK
+	#define LANG_TEMP_VAR_STRING_COUNT_MASK "lng%d_STRING_COUNT"
+#endif
+
 #if defined LANG_USE_SVAR
 	#if !defined MAX_LANG_PREFIX_SVAR_STRING
 		#define MAX_LANG_PREFIX_SVAR_STRING (7 + MAX_LANG_VAR_STRING)
@@ -309,13 +317,17 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 		sep_spos,
 		sep_epos,
 		varname[MAX_LANG_VAR_STRING + 1],
+		var_temp[MAX_LANG_VAR_STRING + 1],
+		var_count,
 		string[MAX_LANG_VAR_STRING + MAX_LANG_SEPARATOR_STRING + MAX_LANG_VALUE_STRING + 1],
 		idx,
 		symbol,
 		length;
 
 	new
+		strings_with_var,
 		strings_with_vars,
+		bool:is_added_string_var,
 		bool:is_valid_checks = true;
 
 	while (fread(flang, string, sizeof(string))) {
@@ -347,6 +359,9 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 			printf("Error: duplicated variable name %s in language '%s'", varname, Lang_ReturnName(lang));
 			break;
 		}
+
+		is_added_string_var = false;
+		strings_with_var = 0;
 
 		for (i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
 			if (string[i] != '\\') {
@@ -420,7 +435,19 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 					strdel(string, i + 1, i + length + 1);
 				}
 				case 'v': {
+					if (!is_added_string_var) {
+						is_added_string_var = true;
+						var_count++;
+					}
+
+					strings_with_var++;
 					strings_with_vars++;
+
+					format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_MASK, var_count, strings_with_var);
+					_Lang_SetVarString(lang, var_temp, varname);
+
+					format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_COUNT_MASK, var_count);
+					_Lang_SetVarInt(lang, var_temp, strings_with_var);
 				}
 			}
 		}
@@ -430,27 +457,26 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 	}
 	fclose(flang);
 
-	if (is_valid_checks) {
-		while (strings_with_vars > 0) {
-			flang = fopen(filename, io_read);
-			while (fread(flang, string, sizeof(string))) {
-				switch (string[0]) {
-					case LANG_IGNORED_FIRST_SYMBOL: {
-						continue;
-					}
-				}
+	if (!is_valid_checks) {
+		return fid;
+	}
 
-				sep_found = _Lang_FindSeparatorPositions(string, sep_spos, sep_epos);
-				if (!sep_found) {
-					continue;
-				}
+	var_count = 0;
 
-				strmid(varname, string, 0, sep_spos);
+	while (strings_with_vars > 0) {
+		var_count++;
 
-				_Lang_ProcessVar(lang, varname);
-				strings_with_vars--;
-			}
-			fclose(flang);
+		format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_COUNT_MASK, var_count);
+		strings_with_var = _Lang_GetVarInt(lang, var_temp);
+		_Lang_DeleteVar(lang, var_temp);
+
+		for (i = 0; i < strings_with_var; i++) {
+			format(var_temp, sizeof(var_temp), LANG_TEMP_VAR_STRING_MASK, var_count, strings_with_var);
+			_Lang_GetVarString(lang, var_temp, varname);
+			_Lang_DeleteVar(lang, var_temp);
+			_Lang_ProcessVar(lang, varname);
+
+			strings_with_vars--;
 		}
 	}
 	return fid;
@@ -1091,6 +1117,36 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[]
 /*
 	Vars
 */
+
+static stock _Lang_SetVarInt(Lang:lang, const var[], value)
+{
+#if defined LANG_USE_GVAR
+	return SetGVarInt(var, value, LANG_VAR_OFFSET + _:lang);
+#endif
+
+#if defined LANG_USE_SVAR
+	static
+		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
+
+	_Lang_ConvertVar(lang, var, varname);
+	return SetSVarInt(varname, value);
+#endif
+}
+
+static stock _Lang_GetVarInt(Lang:lang, const var[])
+{
+#if defined LANG_USE_GVAR
+	return GetGVarInt(var, LANG_VAR_OFFSET + _:lang);
+#endif
+
+#if defined LANG_USE_SVAR
+	static
+		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
+
+	_Lang_ConvertVar(lang, var, varname);
+	return GetSVarInt(varname);
+#endif
+}
 
 static stock _Lang_SetVarString(Lang:lang, const var[], const text[])
 {
