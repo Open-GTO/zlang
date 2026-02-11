@@ -1006,6 +1006,41 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 	return GameTextForAll(text, time, style);
 }
 
+stock Text:Lang_TextDrawCreate(Lang:lang, Float:x, Float:y, const var[], lang_args<>)
+{
+	static
+		text[MAX_LANG_FORMAT_STRING + 1];
+
+	Lang_GetText(lang, var, text);
+	Lang_format(text, sizeof(text), text, lang_start<4>);
+#if defined ENABLE_LANG_DYNAMIC_VARS
+	Lang_ProcessDynamicVars(lang, text);
+#endif
+
+	return TextDrawCreate(x, y, text);
+}
+
+#if defined _INC_open_mp
+
+stock Lang_TextDrawSetStringForPlayer(Text:textid, playerid, const var[], lang_args<>)
+{
+	static
+		Lang:lang,
+		text[MAX_LANG_FORMAT_STRING + 1];
+
+	lang = Lang_GetPlayerLang(playerid);
+
+	Lang_GetText(lang, var, text);
+	Lang_format(text, sizeof(text), text, lang_start<3>);
+#if defined ENABLE_LANG_DYNAMIC_VARS
+	Lang_ProcessDynamicVars(lang, text);
+#endif
+
+	return TextDrawSetStringForPlayer(textid, playerid, text);
+}
+
+#endif
+
 stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var[], lang_args<>)
 {
 	static
