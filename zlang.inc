@@ -930,7 +930,7 @@ stock Lang_SendTextToPlayers(const players[], const size = sizeof(players), cons
 			continue;
 		}
 
-		Lang_GetText(Lang:lang, var, text[lang]);
+		Lang_GetText(lang, var, text[lang]);
 		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
@@ -997,7 +997,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 			continue;
 		}
 
-		Lang_GetText(Lang:lang, var, text[lang]);
+		Lang_GetText(lang, var, text[lang]);
 		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
