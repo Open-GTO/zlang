@@ -1129,9 +1129,9 @@ static stock _Lang_DeleteVar(const var[], id = 0)
 
 #if defined LANG_USE_SVAR
 
-static stock _Lang_GetSVarName(Lang:lang, const var[], varname[], const size = sizeof(varname))
+static stock _Lang_GetSVarName(id, const var[], varname[], const size = sizeof(varname))
 {
-	format(varname, size, LANG_SVAR_VARNAME_MASK, _:lang, var);
+	format(varname, size, LANG_SVAR_VARNAME_MASK, id, var);
 }
 
 #endif
@@ -1224,7 +1224,7 @@ static stock _Lang_IsTextExists(Lang:lang, const var[])
 	static
 		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
 
-	_Lang_GetSVarName(lang, var, varname);
+	_Lang_GetSVarName(_:lang, var, varname);
 	return GetSVarType(varname) != SERVER_VARTYPE_NONE;
 #endif
 }
