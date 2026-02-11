@@ -337,8 +337,16 @@ Lang_SendTextToAll(const var[], {Float, _}:...)
 ```
 
 #### Send language text to all players in array
+
+*Note:* iteration over the `players` array stops when an element with the value `INVALID_PLAYER_ID` is encountered.
+
 ```Pawn
-Lang_SendTextToPlayers(players[], const var[], {Float, _}:...)
+Lang_SendTextToPlayers(const players[], const var[], {Float, _}:...)
+```
+
+#### Send language text to all players in array
+```Pawn
+Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), const var[], {Float, _}:...)
 ```
 
 #### Show language dialog to player
@@ -354,6 +362,19 @@ Lang_GameText(playerid, time, style, const var[], {Float, _}:...)
 #### Show language game text to all players
 ```Pawn
 Lang_GameTextForAll(time, style, const var[], {Float, _}:...)
+```
+
+#### Create TextDraw with language var
+```Pawn
+Lang_TextDrawCreate(Lang:lang, Float:x, Float:y, const var[], {Float, _}:...)
+```
+
+#### Sets the language text to the TextDraw for specific player
+
+*Note:* open.mp only
+
+```Pawn
+Lang_TextDrawSetStringForPlayer(Text:textid, playerid, const var[], {Float, _}:...)
 ```
 
 #### Create player TextDraw with language var
