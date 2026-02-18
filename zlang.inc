@@ -791,7 +791,7 @@ stock Lang_IsTextExists(Lang:lang, const var[])
 	return _Lang_IsTextExists(lang, var);
 }
 
-#define Lang_GetPlayerText(%0, Lang_GetText(Lang_GetPlayerLang(%0,
+#define Lang_GetPlayerText(%0, Lang_GetText(Lang_GetPlayerLang(%0),
 #define Lang_GetDefaultText( Lang_GetText(Lang_GetDefaultLang(),
 
 /*
