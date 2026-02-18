@@ -164,6 +164,7 @@ MAX_LANG_NAME | 16 | yes
 MAX_LANG_FILES | 5 | yes
 MAX_LANG_FILENAME | 256 | yes
 ENABLE_LANG_DYNAMIC_VARS | (disabled) | yes
+LANG_PROCESS_VARS_NAME | "zlang_vars_name" | yes
 LANG_SVAR_VARNAME_MASK | "lng%d_%s" | yes
 MAX_LANG_PREFIX_SVAR_STRING | 7 + MAX_LANG_VAR_STRING | yes
 INVALID_LANG_ID | Lang:-1 | no
