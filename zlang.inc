@@ -105,6 +105,10 @@
 	#define MAX_LANG_FILENAME (256)
 #endif
 
+#if !defined LANG_PROCESS_VARS_NAME
+	#define LANG_PROCESS_VARS_NAME "zlang_vars_name"
+#endif
+
 #if defined LANG_USE_SVAR
 	#if !defined MAX_LANG_PREFIX_SVAR_STRING
 		#define MAX_LANG_PREFIX_SVAR_STRING (7 + MAX_LANG_VAR_STRING)
@@ -420,10 +424,10 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 						exist,
 						temp[MAX_LANG_VAR_STRING + 1];
 
-					exist = _Lang_GetVarString("zlang_vars_name", temp, .id = strings_with_vars - 1);
+					exist = _Lang_GetVarString(LANG_PROCESS_VARS_NAME, temp, .id = strings_with_vars - 1);
 
 					if (!exist || strcmp(varname, temp, true)) {
-						_Lang_SetVarString("zlang_vars_name", varname, strings_with_vars);
+						_Lang_SetVarString(LANG_PROCESS_VARS_NAME, varname, strings_with_vars);
 						strings_with_vars++;
 					}
 				}
@@ -693,7 +697,7 @@ stock Lang_SetText(Lang:lang, const var[], const text[])
 	new res = _Lang_SetText(lang, var_temp, text);
 
 	if (strfind(text, "\\v(", true) != -1) {
-		_Lang_SetVarString("zlang_vars_name", var, 0);
+		_Lang_SetVarString(LANG_PROCESS_VARS_NAME, var, 0);
 		_Lang_ProcessVars(lang, 1);
 	}
 
@@ -787,8 +791,8 @@ stock Lang_IsTextExists(Lang:lang, const var[])
 	return _Lang_IsTextExists(lang, var);
 }
 
-#define Lang_GetPlayerText(%0, Lang_GetText(Lang_GetPlayerLang(%0),
-#define Lang_GetDefaultText( Lang_GetText(Lang_GetDefaultLang(),
+#define Lang_GetPlayerText(%0, Lang_GetText(gPlayerLang[%0],
+#define Lang_GetDefaultText( Lang_GetText(gDefaultLang,
 
 /*
 	Print functions
@@ -801,10 +805,14 @@ stock Lang_printf(const var[], lang_args<>)
 		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
-	lang = Lang_GetDefaultLang();
+	lang = gDefaultLang;
 
 	success = Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<1>);
+
+	if (numargs() > 1) {
+		Lang_format(text, sizeof(text), text, lang_start<1>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -821,10 +829,14 @@ stock Lang_printfex(Lang:lang, const var[], lang_args<>)
 		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
-	lang = Lang_GetDefaultLang();
+	lang = gDefaultLang;
 
 	success = Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<2>);
+
+	if (numargs() > 2) {
+		Lang_format(text, sizeof(text), text, lang_start<2>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -840,7 +852,7 @@ stock Lang_print(const var[])
 		text[MAX_LANG_MVALUE_STRING],
 		success;
 
-	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
+	success = Lang_GetText(gDefaultLang, var, text);
 	print(text);
 
 	return success;
@@ -867,12 +879,14 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, text);
 
 #if !defined _INC_open_mp
-	Lang_format(text, sizeof(text), text, lang_start<2>);
+	if (numargs() > 2) {
+		Lang_format(text, sizeof(text), text, lang_start<2>);
+	}
 #endif
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
@@ -882,7 +896,12 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 #if !defined _INC_open_mp
 	return SendClientMessage(playerid, -1, text);
 #else
-	return Lang_SendClientMessage(playerid, text, lang_start<2>);
+	if (numargs() > 2) {
+		return Lang_SendClientMessage(playerid, text, lang_start<2>);
+	}
+	else {
+		return SendClientMessage(playerid, -1, text);
+	}
 #endif
 }
 
@@ -899,11 +918,14 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<1>);
 
-#if defined ENABLE_LANG_DYNAMIC_VARS
+		if (numargs() > 1) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<1>);
+		}
+
+	#if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
-#endif
+	#endif
 	}
 
 #if defined foreach
@@ -914,7 +936,7 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 			continue;
 		}
 #endif
-		SendClientMessage(playerid, -1, text[Lang_GetPlayerLang(playerid)]);
+		SendClientMessage(playerid, -1, text[gPlayerLang[playerid]]);
 	}
 }
 
@@ -931,15 +953,18 @@ stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<2>);
 
-#if defined ENABLE_LANG_DYNAMIC_VARS
+		if (numargs() > 2) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<2>);
+		}
+
+	#if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
-#endif
+	#endif
 	}
 
 	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
-		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
+		SendClientMessage(players[idx], -1, text[gPlayerLang[players[idx]]]);
 	}
 }
 
@@ -956,7 +981,10 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+
+		if (numargs() > 3) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+		}
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
@@ -964,7 +992,7 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 	}
 
 	for (idx = 0; idx < size && players[idx] != INVALID_PLAYER_ID; idx++) {
-		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
+		SendClientMessage(players[idx], -1, text[gPlayerLang[players[idx]]]);
 	}
 }
 
@@ -977,7 +1005,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_
 		button2[MAX_LANG_VALUE_STRING],
 		info[MAX_LANG_MFORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var_caption, caption);
 	Lang_GetText(lang, var_button1, button1);
@@ -985,7 +1013,11 @@ stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_
 		Lang_GetText(lang, var_button2, button2);
 	}
 	Lang_GetText(lang, var_info, info);
-	Lang_format(info, sizeof(info), info, lang_start<7>);
+
+	if (numargs() > 7) {
+		Lang_format(info, sizeof(info), info, lang_start<7>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, info);
 #endif
@@ -999,10 +1031,14 @@ stock Lang_GameText(playerid, time, style, const var[], lang_args<>)
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1023,7 +1059,10 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+
+		if (numargs() > 3) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+		}
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
@@ -1038,7 +1077,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 			continue;
 		}
 #endif
-		GameTextForPlayer(playerid, text[Lang_GetPlayerLang(playerid)], time, style);
+		GameTextForPlayer(playerid, text[gPlayerLang[playerid]], time, style);
 	}
 }
 
@@ -1048,7 +1087,11 @@ stock Text:Lang_TextDrawCreate(Lang:lang, Float:x, Float:y, const var[], lang_ar
 		text[MAX_LANG_FORMAT_STRING + 1];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1064,10 +1107,14 @@ stock Lang_TextDrawSetStringForPlayer(Text:textid, playerid, const var[], lang_a
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING + 1];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<3>);
+
+	if (numargs() > 3) {
+		Lang_format(text, sizeof(text), text, lang_start<3>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1083,10 +1130,14 @@ stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1094,55 +1145,67 @@ stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var
 	return CreatePlayerTextDraw(playerid, x, y, text);
 }
 
-stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, const var[], lang_args<>)
+stock Lang_PlayerTextDrawSetString(playerid, PlayerText:textid, const var[], lang_args<>)
 {
 	static
 		Lang:lang,
 		string[MAX_LANG_FORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, string);
-	Lang_format(string, sizeof(string), string, lang_start<3>);
+
+	if (numargs() > 3) {
+		Lang_format(string, sizeof(string), string, lang_start<3>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, string);
 #endif
 
-	return PlayerTextDrawSetString(playerid, text, string);
+	return PlayerTextDrawSetString(playerid, textid, string);
 }
 
-stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:DrawDistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, testLOS = 0, lang_args<>)
+stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:drawDistance, parentPlayerid = INVALID_PLAYER_ID, parentVehicleid = INVALID_VEHICLE_ID, testLOS = 0, lang_args<>)
 {
 	static
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<10>);
+
+	if (numargs() > 10) {
+		Lang_format(text, sizeof(text), text, lang_start<10>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
 
-	return CreatePlayer3DTextLabel(playerid, text, color, x, y, z, DrawDistance, attachedplayer, attachedvehicle, testLOS);
+	return CreatePlayer3DTextLabel(playerid, text, color, x, y, z, drawDistance, parentPlayerid, parentVehicleid, testLOS);
 }
 
-stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[], lang_args<>)
+stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:textid, color, const var[], lang_args<>)
 {
 	static
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = Lang_GetPlayerLang(playerid);
+	lang = gPlayerLang[playerid];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
 
-	return UpdatePlayer3DTextLabelText(playerid, id, color, text);
+	return UpdatePlayer3DTextLabelText(playerid, textid, color, text);
 }
 
 /*
@@ -1316,7 +1379,7 @@ static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
 		next_iteration = false;
 
 		for (i = 0; i < strings_with_vars; i++) {
-			if (!_Lang_GetVarString("zlang_vars_name", varname, .id = i)) {
+			if (!_Lang_GetVarString(LANG_PROCESS_VARS_NAME, varname, .id = i)) {
 				continue;
 			}
 
@@ -1349,7 +1412,7 @@ static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
 				_Lang_SetText(lang, varname, varvalue);
 			}
 
-			_Lang_DeleteVar("zlang_vars_name", i);
+			_Lang_DeleteVar(LANG_PROCESS_VARS_NAME, i);
 		}
 	} while (next_iteration);
 }
@@ -1461,13 +1524,6 @@ static stock _Lang_pow(value, degree)
 		result *= value;
 	}
 	return result;
-}
-
-forward _Lang_SysreqFix();
-public _Lang_SysreqFix()
-{
-	new temp[2];
-	format(temp, sizeof(temp), "");
 }
 
 // taken from YSI
