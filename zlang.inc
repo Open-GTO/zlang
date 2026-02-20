@@ -1166,7 +1166,7 @@ stock Lang_PlayerTextDrawSetString(playerid, PlayerText:textid, const var[], lan
 	return PlayerTextDrawSetString(playerid, textid, string);
 }
 
-stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:drawDistance, parentPlayerid = INVALID_PLAYER_ID, parentVehicleid = INVALID_VEHICLE_ID, testLOS = 0, lang_args<>)
+stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:drawDistance, parentPlayerid = INVALID_PLAYER_ID, parentVehicleid = INVALID_VEHICLE_ID, bool:testLOS = false, lang_args<>)
 {
 	static
 		Lang:lang,
