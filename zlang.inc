@@ -555,7 +555,7 @@ stock Lang_SetCode(Lang:lang, const code[])
 
 stock Lang_GetCode(Lang:lang, code[], const size = sizeof(code))
 {
-	strcat(code, gLangInfo[_:lang][e_zlCode], size);
+	_Lang_strcpy(code, gLangInfo[_:lang][e_zlCode], size);
 }
 
 stock Lang_ReturnCode(Lang:lang)
