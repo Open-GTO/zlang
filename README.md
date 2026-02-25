@@ -125,6 +125,7 @@ static
 public OnGameModeInit()
 {
 	// Wait for the gamemode to load. You can also call it using CallRemoteFunction from your gamemode.
+	// This function must be called after adding languages (Lang_Add) in your gamemode.
 	SetTimer("LoadFilterscriptLang", 0, 0);
 	return 0;
 }
