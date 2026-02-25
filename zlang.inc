@@ -861,7 +861,11 @@ stock Lang_printf(const var[], lang_args<>)
 	lang = Lang_GetDefaultLang();
 
 	success = Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<1>);
+
+	if (numargs() > 1) {
+		Lang_format(text, sizeof(text), text, lang_start<1>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -881,7 +885,11 @@ stock Lang_printfex(Lang:lang, const var[], lang_args<>)
 	lang = Lang_GetDefaultLang();
 
 	success = Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<2>);
+
+	if (numargs() > 2) {
+		Lang_format(text, sizeof(text), text, lang_start<2>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -929,7 +937,9 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 	Lang_GetText(lang, var, text);
 
 #if !defined _INC_open_mp
-	Lang_format(text, sizeof(text), text, lang_start<2>);
+	if (numargs() > 2) {
+		Lang_format(text, sizeof(text), text, lang_start<2>);
+	}
 #endif
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
@@ -939,7 +949,10 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 #if !defined _INC_open_mp
 	return SendClientMessage(playerid, -1, text);
 #else
-	return Lang_SendClientMessage(playerid, text, lang_start<2>);
+	if (numargs() > 2) {
+		return Lang_SendClientMessage(playerid, text, lang_start<2>);
+	}
+	return SendClientMessage(playerid, -1, text);
 #endif
 }
 
@@ -956,11 +969,14 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<1>);
 
-#if defined ENABLE_LANG_DYNAMIC_VARS
+		if (numargs() > 1) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<1>);
+		}
+
+	#if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
-#endif
+	#endif
 	}
 
 #if defined foreach
@@ -988,11 +1004,14 @@ stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<2>);
 
-#if defined ENABLE_LANG_DYNAMIC_VARS
+		if (numargs() > 2) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<2>);
+		}
+
+	#if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
-#endif
+	#endif
 	}
 
 	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
@@ -1013,7 +1032,10 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+
+		if (numargs() > 3) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+		}
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
@@ -1042,7 +1064,11 @@ stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_
 		Lang_GetText(lang, var_button2, button2);
 	}
 	Lang_GetText(lang, var_info, info);
-	Lang_format(info, sizeof(info), info, lang_start<7>);
+
+	if (numargs() > 7) {
+		Lang_format(info, sizeof(info), info, lang_start<7>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, info);
 #endif
@@ -1059,7 +1085,11 @@ stock Lang_GameText(playerid, time, style, const var[], lang_args<>)
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1080,7 +1110,10 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 		}
 
 		Lang_GetText(lang, var, text[lang]);
-		Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+
+		if (numargs() > 3) {
+			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
+		}
 
 #if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
@@ -1105,7 +1138,11 @@ stock Text:Lang_TextDrawCreate(Lang:lang, Float:x, Float:y, const var[], lang_ar
 		text[MAX_LANG_FORMAT_STRING + 1];
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1124,7 +1161,11 @@ stock Lang_TextDrawSetStringForPlayer(Text:textid, playerid, const var[], lang_a
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<3>);
+
+	if (numargs() > 3) {
+		Lang_format(text, sizeof(text), text, lang_start<3>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1143,7 +1184,11 @@ stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1160,7 +1205,11 @@ stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, const var[], lang_
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, string);
-	Lang_format(string, sizeof(string), string, lang_start<3>);
+
+	if (numargs() > 3) {
+		Lang_format(string, sizeof(string), string, lang_start<3>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, string);
 #endif
@@ -1177,7 +1226,11 @@ stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Fl
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<10>);
+
+	if (numargs() > 10) {
+		Lang_format(text, sizeof(text), text, lang_start<10>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
@@ -1194,7 +1247,11 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[]
 	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
-	Lang_format(text, sizeof(text), text, lang_start<4>);
+
+	if (numargs() > 4) {
+		Lang_format(text, sizeof(text), text, lang_start<4>);
+	}
+
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, text);
 #endif
