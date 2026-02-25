@@ -952,6 +952,7 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 	if (numargs() > 2) {
 		return Lang_SendClientMessage(playerid, text, lang_start<2>);
 	}
+	return SendClientMessage(playerid, -1, text);
 #endif
 }
 
