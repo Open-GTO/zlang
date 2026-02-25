@@ -107,6 +107,52 @@ Hello, World! = \v(HELLO_MSG)
 Commands: /help, /en, /ru = \v(COMMANDS_LIST)
 ```
 
+### Filterscript example
+
+```Pawn
+#include <a_samp>
+#include "gvar" // optional but as in gamemode
+#include "zlang.inc"
+
+enum e_LANG_INFO {
+	Lang:e_LANG_RU, // swapped
+	Lang:e_LANG_EN, // swapped
+}
+
+static
+	gLang[e_LANG_INFO];
+
+public OnGameModeInit()
+{
+	// Wait for the gamemode to load. You can also call it using CallRemoteFunction from your gamemode.
+	SetTimer("LoadFilterscriptLang", 0, 0);
+	return 0;
+}
+
+forward LoadFilterscriptLang();
+public LoadFilterscriptLang()
+{
+	Lang_LoadExternal();
+
+	new
+		code[MAX_LANG_CODE + 1],
+		name[MAX_LANG_NAME + 1];
+
+	for (new lang = 0; lang < MAX_LANGS; lang += 1) {
+		Lang_GetCode(Lang:lang, code);
+		Lang_GetName(Lang:lang, name);
+
+		if (!strcmp(code, "ru")) {
+			gLang[e_LANG_RU] = Lang:lang;
+		} else if (!strcmp(code, "en")) {
+			gLang[e_LANG_EN] = Lang:lang;
+		}
+	}
+
+	Lang_SetDefaultLang(gLang[e_LANG_RU]);
+}
+```
+
 # Language file format
 
 Language file format is a standard INI file format (without sections). It supports a variety of special characters, such as `\n`, `\t`, `\%`, `\s`, `\\`, `\v(<value>)`, `\x<hex>`.
@@ -166,6 +212,10 @@ MAX_LANG_FILENAME | 256 | yes
 ENABLE_LANG_DYNAMIC_VARS | (disabled) | yes
 LANG_SVAR_VARNAME_MASK | "lng%d_%s" | yes
 MAX_LANG_PREFIX_SVAR_STRING | 7 + MAX_LANG_VAR_STRING | yes
+LANG_SYSVAR_PREFIX | "zlang_" | yes
+LANG_SYSVAR_VARS_NAME | LANG_SYSVAR_PREFIX "vars_name" | no
+LANG_SYSVAR_SLOT_NAME | LANG_SYSVAR_PREFIX "slot_name" | no
+LANG_SYSVAR_SLOT_CODE | LANG_SYSVAR_PREFIX "slot_code" | no
 INVALID_LANG_ID | Lang:-1 | no
 INVALID_LANG_FILE_ID | -1 | no
 
@@ -194,6 +244,14 @@ Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_ID)
 #### Reload all language files
 ```Pawn
 Lang_Reload(Lang:lang)
+```
+
+#### Load languages from external sources
+
+Can be used in a filterscript to load gamemode languages, or vice versa.
+
+```Pawn
+Lang_LoadExternal(Lang:lang)
 ```
 
 #### Get language id by *code* or *name*
