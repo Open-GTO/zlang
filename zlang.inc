@@ -805,7 +805,7 @@ stock Lang_printf(const var[], lang_args<>)
 		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
-	lang = gDefaultLang;
+	lang = Lang_GetDefaultLang();
 
 	success = Lang_GetText(lang, var, text);
 
@@ -829,7 +829,7 @@ stock Lang_printfex(Lang:lang, const var[], lang_args<>)
 		text[MAX_LANG_MFORMAT_STRING],
 		success;
 
-	lang = gDefaultLang;
+	lang = Lang_GetDefaultLang();
 
 	success = Lang_GetText(lang, var, text);
 
@@ -852,7 +852,7 @@ stock Lang_print(const var[])
 		text[MAX_LANG_MVALUE_STRING],
 		success;
 
-	success = Lang_GetText(gDefaultLang, var, text);
+	success = Lang_GetText(Lang_GetDefaultLang(), var, text);
 	print(text);
 
 	return success;
@@ -879,7 +879,7 @@ stock Lang_SendText(playerid, const var[], lang_args<>)
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
 
@@ -936,7 +936,7 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 			continue;
 		}
 #endif
-		SendClientMessage(playerid, -1, text[gPlayerLang[playerid]]);
+		SendClientMessage(playerid, -1, text[Lang_GetPlayerLang(playerid)]);
 	}
 }
 
@@ -964,7 +964,7 @@ stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 	}
 
 	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
-		SendClientMessage(players[idx], -1, text[gPlayerLang[players[idx]]]);
+		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
 	}
 }
 
@@ -992,7 +992,7 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 	}
 
 	for (idx = 0; idx < size && players[idx] != INVALID_PLAYER_ID; idx++) {
-		SendClientMessage(players[idx], -1, text[gPlayerLang[players[idx]]]);
+		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
 	}
 }
 
@@ -1005,7 +1005,7 @@ stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_
 		button2[MAX_LANG_VALUE_STRING],
 		info[MAX_LANG_MFORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var_caption, caption);
 	Lang_GetText(lang, var_button1, button1);
@@ -1031,7 +1031,7 @@ stock Lang_GameText(playerid, time, style, const var[], lang_args<>)
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
 
@@ -1077,7 +1077,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 			continue;
 		}
 #endif
-		GameTextForPlayer(playerid, text[gPlayerLang[playerid]], time, style);
+		GameTextForPlayer(playerid, text[Lang_GetPlayerLang(playerid)], time, style);
 	}
 }
 
@@ -1107,7 +1107,7 @@ stock Lang_TextDrawSetStringForPlayer(Text:textid, playerid, const var[], lang_a
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING + 1];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
 
@@ -1130,7 +1130,7 @@ stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
 
@@ -1145,13 +1145,13 @@ stock PlayerText:Lang_CreatePlayerTextDraw(playerid, Float:x, Float:y, const var
 	return CreatePlayerTextDraw(playerid, x, y, text);
 }
 
-stock Lang_PlayerTextDrawSetString(playerid, PlayerText:textid, const var[], lang_args<>)
+stock Lang_PlayerTextDrawSetString(playerid, PlayerText:text, const var[], lang_args<>)
 {
 	static
 		Lang:lang,
 		string[MAX_LANG_FORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, string);
 
@@ -1163,16 +1163,16 @@ stock Lang_PlayerTextDrawSetString(playerid, PlayerText:textid, const var[], lan
 	Lang_ProcessDynamicVars(lang, string);
 #endif
 
-	return PlayerTextDrawSetString(playerid, textid, string);
+	return PlayerTextDrawSetString(playerid, text, string);
 }
 
-stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:drawDistance, parentPlayerid = INVALID_PLAYER_ID, parentVehicleid = INVALID_VEHICLE_ID, bool:testLOS = false, lang_args<>)
+stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Float:x, Float:y, Float:z, Float:DrawDistance, attachedplayer = INVALID_PLAYER_ID, attachedvehicle = INVALID_VEHICLE_ID, testLOS = 0, lang_args<>)
 {
 	static
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
 
@@ -1184,16 +1184,16 @@ stock PlayerText3D:Lang_CreatePlayer3DTextLabel(playerid, const var[], color, Fl
 	Lang_ProcessDynamicVars(lang, text);
 #endif
 
-	return CreatePlayer3DTextLabel(playerid, text, color, x, y, z, drawDistance, parentPlayerid, parentVehicleid, testLOS);
+	return CreatePlayer3DTextLabel(playerid, text, color, x, y, z, DrawDistance, attachedplayer, attachedvehicle, testLOS);
 }
 
-stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:textid, color, const var[], lang_args<>)
+stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[], lang_args<>)
 {
 	static
 		Lang:lang,
 		text[MAX_LANG_FORMAT_STRING];
 
-	lang = gPlayerLang[playerid];
+	lang = Lang_GetPlayerLang(playerid);
 
 	Lang_GetText(lang, var, text);
 
@@ -1205,7 +1205,7 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:textid, color, const v
 	Lang_ProcessDynamicVars(lang, text);
 #endif
 
-	return UpdatePlayer3DTextLabelText(playerid, textid, color, text);
+	return UpdatePlayer3DTextLabelText(playerid, id, color, text);
 }
 
 /*
@@ -1524,6 +1524,13 @@ static stock _Lang_pow(value, degree)
 		result *= value;
 	}
 	return result;
+}
+
+forward _Lang_SysreqFix();
+public _Lang_SysreqFix()
+{
+	new temp[2];
+	format(temp, sizeof(temp), "");
 }
 
 // taken from YSI
