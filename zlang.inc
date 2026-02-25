@@ -105,9 +105,13 @@
 	#define MAX_LANG_FILENAME (256)
 #endif
 
-#if !defined LANG_PROCESS_VARS_NAME
-	#define LANG_PROCESS_VARS_NAME "zlang_vars_name"
+#if !defined LANG_SYSVAR_PREFIX
+	#define LANG_SYSVAR_PREFIX "zlang_"
 #endif
+
+#define LANG_SYSVAR_VARS_NAME LANG_SYSVAR_PREFIX "vars_name"
+#define LANG_SYSVAR_SLOT_NAME LANG_SYSVAR_PREFIX "slot_name"
+#define LANG_SYSVAR_SLOT_CODE LANG_SYSVAR_PREFIX "slot_code"
 
 #if defined LANG_USE_SVAR
 	#if !defined MAX_LANG_PREFIX_SVAR_STRING
@@ -424,10 +428,10 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 						exist,
 						temp[MAX_LANG_VAR_STRING + 1];
 
-					exist = _Lang_GetVarString(LANG_PROCESS_VARS_NAME, temp, .id = strings_with_vars - 1);
+					exist = _Lang_GetVarString(LANG_SYSVAR_VARS_NAME, temp, .id = strings_with_vars - 1);
 
 					if (!exist || strcmp(varname, temp, true)) {
-						_Lang_SetVarString(LANG_PROCESS_VARS_NAME, varname, strings_with_vars);
+						_Lang_SetVarString(LANG_SYSVAR_VARS_NAME, varname, strings_with_vars);
 						strings_with_vars++;
 					}
 				}
@@ -508,6 +512,35 @@ stock Lang_Reload(Lang:lang)
 	}
 }
 
+stock Lang_LoadExternal()
+{
+	new
+		code_success,
+		name_success,
+		code[MAX_LANG_CODE + 1],
+		name[MAX_LANG_NAME + 1];
+
+	for (new lang = 0; lang < MAX_LANGS; lang += 1) {
+		code_success = _Lang_GetVarString(LANG_SYSVAR_SLOT_CODE, code, .id = lang);
+		if (!code_success) {
+			continue;
+		}
+
+		name_success = _Lang_GetVarString(LANG_SYSVAR_SLOT_NAME, name, .id = lang);
+		if (!name_success) {
+			continue;
+		}
+
+		_Lang_SetCode(Lang:lang, code);
+		_Lang_SetName(Lang:lang, name);
+
+		if (!_Lang_IsSlotHaveStatus(Lang:lang, LANG_SLOT_BUSY)) {
+			_Lang_SetSlotStatus(Lang:lang, LANG_SLOT_BUSY);
+			gLangCount++;
+		}
+	}
+}
+
 stock Lang:Lang_Get(const code[] = "", const name[] = "")
 {
 	new
@@ -531,6 +564,16 @@ stock Lang:Lang_Get(const code[] = "", const name[] = "")
 
 stock Lang_SetName(Lang:lang, const name[])
 {
+	if (name[0] == '\0') {
+		_Lang_DeleteVar(LANG_SYSVAR_SLOT_NAME, _:lang);
+	} else {
+		_Lang_SetVarString(LANG_SYSVAR_SLOT_NAME, name, _:lang);
+	}
+	return _Lang_SetName(lang, name);
+}
+
+static stock _Lang_SetName(Lang:lang, const name[])
+{
 	if (name{0} != 0) {
 		return strunpack(gLangInfo[_:lang][e_zlName], name, MAX_LANG_NAME + 1);
 	}
@@ -551,6 +594,16 @@ stock Lang_ReturnName(Lang:lang)
 
 stock Lang_SetCode(Lang:lang, const code[])
 {
+	if (code[0] == '\0') {
+		_Lang_DeleteVar(LANG_SYSVAR_SLOT_CODE, _:lang);
+	} else {
+		_Lang_SetVarString(LANG_SYSVAR_SLOT_CODE, code, _:lang);
+	}
+	return _Lang_SetCode(lang, code);
+}
+
+static stock _Lang_SetCode(Lang:lang, const code[])
+{
 	if (code{0} != 0) {
 		return strunpack(gLangInfo[_:lang][e_zlCode], code, MAX_LANG_CODE + 1);
 	}
@@ -559,7 +612,7 @@ stock Lang_SetCode(Lang:lang, const code[])
 
 stock Lang_GetCode(Lang:lang, code[], const size = sizeof(code))
 {
-	strcat(code, gLangInfo[_:lang][e_zlCode], size);
+	_Lang_strcpy(code, gLangInfo[_:lang][e_zlCode], size);
 }
 
 stock Lang_ReturnCode(Lang:lang)
@@ -697,7 +750,7 @@ stock Lang_SetText(Lang:lang, const var[], const text[])
 	new res = _Lang_SetText(lang, var_temp, text);
 
 	if (strfind(text, "\\v(", true) != -1) {
-		_Lang_SetVarString(LANG_PROCESS_VARS_NAME, var, 0);
+		_Lang_SetVarString(LANG_SYSVAR_VARS_NAME, var, 0);
 		_Lang_ProcessVars(lang, 1);
 	}
 
@@ -1379,7 +1432,7 @@ static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
 		next_iteration = false;
 
 		for (i = 0; i < strings_with_vars; i++) {
-			if (!_Lang_GetVarString(LANG_PROCESS_VARS_NAME, varname, .id = i)) {
+			if (!_Lang_GetVarString(LANG_SYSVAR_VARS_NAME, varname, .id = i)) {
 				continue;
 			}
 
@@ -1412,7 +1465,7 @@ static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
 				_Lang_SetText(lang, varname, varvalue);
 			}
 
-			_Lang_DeleteVar(LANG_PROCESS_VARS_NAME, i);
+			_Lang_DeleteVar(LANG_SYSVAR_VARS_NAME, i);
 		}
 	} while (next_iteration);
 }
