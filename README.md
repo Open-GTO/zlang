@@ -251,7 +251,7 @@ Lang_Reload(Lang:lang)
 Can be used in a filterscript to load gamemode languages, or vice versa.
 
 ```Pawn
-Lang_LoadExternal(Lang:lang)
+Lang_LoadExternal()
 ```
 
 #### Get language id by *code* or *name*
