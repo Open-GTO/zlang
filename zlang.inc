@@ -320,7 +320,7 @@ stock Lang:Lang_Add(const code[], const name[])
 	Lang_SetName(lang, name);
 
 	Lang_SetSlotStatus(lang, LANG_SLOT_BUSY);
-	gLangCount++;
+	gLangCount += 1;
 	return lang;
 }
 
@@ -333,18 +333,18 @@ stock Lang_Remove(Lang:lang)
 	Lang_SetCode(lang, "");
 	Lang_SetName(lang, "");
 
-	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
+	for (new fid = 0; fid < MAX_LANG_FILES; fid += 1) {
 		Lang_UnloadFile(lang, .fid = fid);
 	}
 
 	Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
-	gLangCount--;
+	gLangCount -= 1;
 	return 1;
 }
 
 stock Lang_RemoveAll()
 {
-	for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
+	for (new Lang:lang; lang < Lang:MAX_LANGS; lang += 1) {
 		Lang_Remove(lang);
 	}
 }
@@ -434,7 +434,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 			break;
 		}
 
-		for (i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
+		for (i = 0; string[i] >= ' ' || string[i] == '\t'; i += 1) {
 			if (string[i] != '\\') {
 				continue;
 			}
@@ -464,10 +464,10 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 					string[i] = 0;
 
 					do {
-						length++;
+						length += 1;
 					} while ('0' <= string[i + length + 1] <= '9');
 
-					for (idx = 1; idx <= length; idx++) {
+					for (idx = 1; idx <= length; idx += 1) {
 						string[i] += (string[i + idx] - '0') * _Lang_pow(10, length - idx);
 					}
 
@@ -478,13 +478,13 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 					string[i] = 0;
 
 					do {
-						length++;
+						length += 1;
 						symbol = string[i + length + 1];
 					} while (   '0' <= symbol <= '9'
 					         || 'A' <= symbol <= 'F'
 					         || 'a' <= symbol <= 'f');
 
-					for (idx = 1; idx <= length; idx++) {
+					for (idx = 1; idx <= length; idx += 1) {
 						symbol = string[i + idx];
 
 						if ('A' <= symbol <= 'F') {
@@ -514,7 +514,7 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 
 					if (!exist || strcmp(varname, temp, true)) {
 						_Lang_SetVarString(LANG_SYSVAR_VARS_NAME, varname, strings_with_vars);
-						strings_with_vars++;
+						strings_with_vars += 1;
 					}
 				}
 			}
@@ -587,7 +587,7 @@ stock Lang_Reload(Lang:lang)
 	new
 		filename[MAX_LANG_FILENAME];
 
-	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
+	for (new fid = 0; fid < MAX_LANG_FILES; fid += 1) {
 		if (isnull(gLangFiles[_:lang][fid])) {
 			continue;
 		}
@@ -609,7 +609,7 @@ stock Lang:Lang_Get(const code[] = "", const name[] = "")
 	is_code = strlen(code) != 0;
 	is_name = strlen(name) != 0;
 
-	for (new l; l < MAX_LANGS; l++) {
+	for (new l; l < MAX_LANGS; l += 1) {
 		if (is_code && !strcmp(code, gLangInfo[l][e_zlCode], true)) {
 			return Lang:l;
 		} else if (is_name && !strcmp(name, gLangInfo[l][e_zlName], true)) {
@@ -697,11 +697,11 @@ stock Lang_GetCodes(result[], const size = sizeof(result), const separator = '/'
 	result[0] = '\0';
 	sep[0] = separator;
 
-	for (lang = 0; lang < MAX_LANGS; lang++) {
+	for (lang = 0; lang < MAX_LANGS; lang += 1) {
 		strcat(result, gLangInfo[lang][e_zlCode], size);
 		strcat(result, sep, size);
 
-		for (i = (MAX_LANG_CODE + 1) * lang; i < (MAX_LANG_CODE + 1) * (lang + 1) - 1; i++) {
+		for (i = (MAX_LANG_CODE + 1) * lang; i < (MAX_LANG_CODE + 1) * (lang + 1) - 1; i += 1) {
 			if (isuppercase) {
 				result[i] = toupper(result[i]);
 			} else {
@@ -1055,7 +1055,7 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1074,7 +1074,7 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 #if defined foreach
 	foreach (playerid : Player) {
 #else
-	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid -= 1) {
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
@@ -1090,7 +1090,7 @@ stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1106,7 +1106,7 @@ stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 	#endif
 	}
 
-	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx++) {
+	for (idx = 0; players[idx] != INVALID_PLAYER_ID; idx += 1) {
 		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
 	}
 }
@@ -1118,7 +1118,7 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1134,7 +1134,7 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 #endif
 	}
 
-	for (idx = 0; idx < size && players[idx] != INVALID_PLAYER_ID; idx++) {
+	for (idx = 0; idx < size && players[idx] != INVALID_PLAYER_ID; idx += 1) {
 		SendClientMessage(players[idx], -1, text[Lang_GetPlayerLang(players[idx])]);
 	}
 }
@@ -1196,7 +1196,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang++) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1215,7 +1215,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 #if defined foreach
 	foreach (playerid : Player) {
 #else
-	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid -= 1) {
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
@@ -1520,7 +1520,7 @@ static stock _Lang_GetSVarName(id, const var[], varname[], const size = sizeof(v
 
 static stock _Lang_FindFile(Lang:lang, const filename[])
 {
-	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
+	for (new fid = 0; fid < MAX_LANG_FILES; fid += 1) {
 		if (isnull(gLangFiles[_:lang][fid])) {
 			continue;
 		}
@@ -1535,7 +1535,7 @@ static stock _Lang_FindFile(Lang:lang, const filename[])
 
 static stock _Lang_GetFreeFileSlot(Lang:lang)
 {
-	for (new fid = 0; fid < MAX_LANG_FILES; fid++) {
+	for (new fid = 0; fid < MAX_LANG_FILES; fid += 1) {
 		if (isnull(gLangFiles[_:lang][fid])) {
 			return fid;
 		}
@@ -1576,7 +1576,7 @@ static stock _Lang_GetText(Lang:lang, const var[], text[], const size = sizeof(t
 				}
 
 				strcat(text, text_multi, size);
-				i++;
+				i += 1;
 			}
 		} while (success);
 
@@ -1612,7 +1612,7 @@ static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
 	do {
 		next_iteration = false;
 
-		for (i = 0; i < strings_with_vars; i++) {
+		for (i = 0; i < strings_with_vars; i += 1) {
 			if (!_Lang_GetVarString(LANG_SYSVAR_VARS_NAME, varname, .id = i)) {
 				continue;
 			}
@@ -1681,7 +1681,7 @@ static stock _Lang_FindSeparatorPositions(const string[], &start_pos, &end_pos)
 		sep_spos = -1,
 		sep_epos = -1;
 
-	for (new i = 0; string[i] >= ' ' || string[i] == '\t'; i++) {
+	for (new i = 0; string[i] >= ' ' || string[i] == '\t'; i += 1) {
 		if (sep_spos < 0 || sep_epos < 0) {
 			// get the separator position
 			if (sep_spos == -1) {
@@ -1717,7 +1717,7 @@ static stock _Lang_FindSeparatorPositions(const string[], &start_pos, &end_pos)
 
 static stock Lang:_Lang_GetFreeSlot()
 {
-	for (new Lang:l; l < Lang:MAX_LANGS; l++) {
+	for (new Lang:l; l < Lang:MAX_LANGS; _:l += 1) {
 		if (_Lang_IsSlotHaveStatus(l, LANG_SLOT_FREE)) {
 			return l;
 		}
@@ -1764,7 +1764,8 @@ static stock _Lang_strcpy(result[], const source[], const size = sizeof(result))
 static stock _Lang_pow(value, degree)
 {
 	new result = 1;
-	while (degree--) {
+	while (degree != 0) {
+		degree -= 1;
 		result *= value;
 	}
 	return result;
