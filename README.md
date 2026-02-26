@@ -109,49 +109,13 @@ Commands: /help, /en, /ru = \v(COMMANDS_LIST)
 
 ### Filterscript example
 
+To use zlang in filterscripts, add `#define ENABLE_LANG_MULTISCRIPT` to all your scripts (including the gamemode), as shown below:
+
 ```Pawn
 #include <a_samp>
-#include "gvar" // optional but as in gamemode
+
+#define ENABLE_LANG_MULTISCRIPT
 #include "zlang.inc"
-
-enum e_LANG_INFO {
-	Lang:e_LANG_RU, // swapped
-	Lang:e_LANG_EN, // swapped
-}
-
-static
-	gLang[e_LANG_INFO];
-
-public OnGameModeInit()
-{
-	// Wait for the gamemode to load. You can also call it using CallRemoteFunction from your gamemode.
-	// This function must be called after adding languages (Lang_Add) in your gamemode.
-	SetTimer("LoadFilterscriptLang", 0, 0);
-	return 0;
-}
-
-forward LoadFilterscriptLang();
-public LoadFilterscriptLang()
-{
-	Lang_LoadExternal();
-
-	new
-		code[MAX_LANG_CODE + 1],
-		name[MAX_LANG_NAME + 1];
-
-	for (new lang = 0; lang < MAX_LANGS; lang += 1) {
-		Lang_GetCode(Lang:lang, code);
-		Lang_GetName(Lang:lang, name);
-
-		if (!strcmp(code, "ru")) {
-			gLang[e_LANG_RU] = Lang:lang;
-		} else if (!strcmp(code, "en")) {
-			gLang[e_LANG_EN] = Lang:lang;
-		}
-	}
-
-	Lang_SetDefaultLang(gLang[e_LANG_RU]);
-}
 ```
 
 # Language file format
@@ -194,31 +158,36 @@ public OnGameModeInit()
 
 # Defines
 
-Directive | Default value | Can be redefined
+Directive | Default value | Note
 ----------|---------------|------------
-MAX_LANGS | 2 | yes
-LANG_VAR_OFFSET | 1000 | yes
-LANG_IGNORED_FIRST_SYMBOL | '\0', '#', ';' | yes
-MAX_LANG_VAR_STRING | 144 | yes
-MAX_LANG_VALUE_STRING | 288 | yes
-MAX_LANG_FORMAT_STRING | 144 | yes
-MAX_LANG_MULTI_LINES | 25 | yes
-MAX_LANG_MVALUE_STRING | MAX_LANG_VALUE_STRING * MAX_LANG_MULTI_LINES | yes
-MAX_LANG_MFORMAT_STRING | MAX_LANG_FORMAT_STRING * MAX_LANG_MULTI_LINES | yes
-MAX_LANG_SEPARATOR_STRING | 64 | yes
-MAX_LANG_CODE | 2 | yes
-MAX_LANG_NAME | 16 | yes
-MAX_LANG_FILES | 5 | yes
-MAX_LANG_FILENAME | 256 | yes
-ENABLE_LANG_DYNAMIC_VARS | (disabled) | yes
-LANG_SVAR_VARNAME_MASK | "lng%d_%s" | yes
-MAX_LANG_PREFIX_SVAR_STRING | 7 + MAX_LANG_VAR_STRING | yes
-LANG_SYSVAR_PREFIX | "zlang_" | yes
-LANG_SYSVAR_VARS_NAME | LANG_SYSVAR_PREFIX "vars_name" | no
-LANG_SYSVAR_SLOT_NAME | LANG_SYSVAR_PREFIX "slot_name" | no
-LANG_SYSVAR_SLOT_CODE | LANG_SYSVAR_PREFIX "slot_code" | no
-INVALID_LANG_ID | Lang:-1 | no
-INVALID_LANG_FILE_ID | -1 | no
+INVALID_LANG_ID | Lang:-1 |
+INVALID_LANG_FILE_ID | -1 |
+MAX_LANGS | 2 | Can be redefined
+LANG_VAR_OFFSET | 1000 | Can be redefined
+LANG_IGNORED_FIRST_SYMBOL | '\0', '#', ';' | Can be redefined
+MAX_LANG_VAR_STRING | 144 | Can be redefined
+MAX_LANG_VALUE_STRING | 288 | Can be redefined
+MAX_LANG_FORMAT_STRING | 144 | Can be redefined
+MAX_LANG_MULTI_LINES | 25 | Can be redefined
+MAX_LANG_MVALUE_STRING | MAX_LANG_VALUE_STRING * MAX_LANG_MULTI_LINES | Can be redefined
+MAX_LANG_MFORMAT_STRING | MAX_LANG_FORMAT_STRING * MAX_LANG_MULTI_LINES | Can be redefined
+MAX_LANG_SEPARATOR_STRING | 64 | Can be redefined
+MAX_LANG_CODE | 2 | Can be redefined
+MAX_LANG_NAME | 16 | Can be redefined
+MAX_LANG_FILES | 5 | Can be redefined
+MAX_LANG_FILENAME | 256 | Can be redefined
+ENABLE_LANG_DYNAMIC_VARS | (disabled) | Can be redefined
+LANG_SVAR_VARNAME_MASK | "lng%d_%s" | Can be redefined
+MAX_LANG_PREFIX_SVAR_STRING | 7 + MAX_LANG_VAR_STRING | Can be redefined, available only in SVar mode
+LANG_SYSVAR_PREFIX | "zlang_" | Can be redefined, available only in SVar mode
+ENABLE_LANG_MULTISCRIPT | (disabled) | Enables multiscript mode
+LANG_SYSVAR_VARS_NAME | LANG_SYSVAR_PREFIX "vars_name" | Available only in multiscript mode
+LANG_SYSVAR_SLOT_NAME | LANG_SYSVAR_PREFIX "slot_name" | Available only in multiscript mode
+LANG_SYSVAR_SLOT_CODE | LANG_SYSVAR_PREFIX "slot_code" | Available only in multiscript mode
+LANG_SYSVAR_SLOT_STATUS | LANG_SYSVAR_PREFIX "slot_status" | Available only in multiscript mode
+LANG_SYSVAR_SLOT_FILES | LANG_SYSVAR_PREFIX "slot_files" | Available only in multiscript mode
+LANG_SYSVAR_DEFAULT_LANG | LANG_SYSVAR_PREFIX "default_lang" | Available only in multiscript mode
+LANG_SYSVAR_PLAYER_LANG | LANG_SYSVAR_PREFIX "player_lang" | Available only in multiscript mode
 
 # Functions
 
@@ -230,6 +199,11 @@ Lang:Lang_Add(const code[], const name[])
 #### Remove language
 ```Pawn
 Lang_Remove(Lang:lang)
+```
+
+#### Remove all languages
+```Pawn
+Lang_RemoveAll()
 ```
 
 #### Load language file
@@ -245,14 +219,6 @@ Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_ID)
 #### Reload all language files
 ```Pawn
 Lang_Reload(Lang:lang)
-```
-
-#### Load languages from external sources
-
-Can be used in a filterscript to load gamemode languages, or vice versa.
-
-```Pawn
-Lang_LoadExternal()
 ```
 
 #### Get language id by *code* or *name*

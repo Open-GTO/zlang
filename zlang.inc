@@ -110,8 +110,15 @@
 #endif
 
 #define LANG_SYSVAR_VARS_NAME LANG_SYSVAR_PREFIX "vars_name"
-#define LANG_SYSVAR_SLOT_NAME LANG_SYSVAR_PREFIX "slot_name"
-#define LANG_SYSVAR_SLOT_CODE LANG_SYSVAR_PREFIX "slot_code"
+
+#if defined ENABLE_LANG_MULTISCRIPT
+	#define LANG_SYSVAR_SLOT_NAME LANG_SYSVAR_PREFIX "slot_name"
+	#define LANG_SYSVAR_SLOT_CODE LANG_SYSVAR_PREFIX "slot_code"
+	#define LANG_SYSVAR_SLOT_STATUS LANG_SYSVAR_PREFIX "slot_status"
+	#define LANG_SYSVAR_SLOT_FILES LANG_SYSVAR_PREFIX "slot_files"
+	#define LANG_SYSVAR_DEFAULT_LANG LANG_SYSVAR_PREFIX "default_lang"
+	#define LANG_SYSVAR_PLAYER_LANG LANG_SYSVAR_PREFIX "player_lang"
+#endif
 
 #if defined LANG_USE_SVAR
 	#if !defined MAX_LANG_PREFIX_SVAR_STRING
@@ -170,6 +177,7 @@ static
 
 forward Lang:Lang_Get(const code[] = "", const name[] = "");
 forward Lang:_Lang_GetFreeSlot();
+forward Lang:Lang_GetPlayerLang(playerid);
 
 /*
 	OnGameModeInit
@@ -181,9 +189,7 @@ forward Lang:_Lang_GetFreeSlot();
 	public OnGameModeInit()
 #endif
 	{
-		for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
-			_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
-		}
+		Lang_Load();
 
 		#if defined ZLANG_OnGameModeInit
 			return ZLANG_OnGameModeInit();
@@ -206,37 +212,89 @@ forward Lang:_Lang_GetFreeSlot();
 #endif
 
 /*
-	OnGameModeExit
+	OnFilterScriptInit
 */
+
 #if defined _inc_y_hooks || defined _INC_y_hooks
-	hook OnGameModeExit()
+	hook OnFilterScriptInit()
 #else
-	public OnGameModeExit()
+	public OnFilterScriptInit()
 #endif
 	{
-		for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
-			Lang_Remove(lang);
-		}
+		Lang_Load();
 
-		#if defined ZLANG_OnGameModeExit
-			return ZLANG_OnGameModeExit();
+		#if defined ZLANG_OnFilterScriptInit
+			return ZLANG_OnFilterScriptInit();
 		#else
 			return 1;
 		#endif
 	}
 
 #if !defined _inc_y_hooks && !defined _INC_y_hooks
-	#if defined _ALS_OnGameModeExit
-		#undef OnGameModeExit
+	#if defined _ALS_OnFilterScriptInit
+		#undef OnFilterScriptInit
 	#else
-		#define _ALS_OnGameModeExit
+		#define _ALS_OnFilterScriptInit
 	#endif
 
-	#define OnGameModeExit ZLANG_OnGameModeExit
-	#if defined ZLANG_OnGameModeExit
-		forward ZLANG_OnGameModeExit();
+	#define OnFilterScriptInit ZLANG_OnFilterScriptInit
+	#if defined ZLANG_OnFilterScriptInit
+		forward ZLANG_OnFilterScriptInit();
 	#endif
 #endif
+
+/*
+	Init functions
+*/
+
+static stock Lang_Load()
+{
+#if !defined ENABLE_LANG_MULTISCRIPT
+	for (new Lang:lang; lang < Lang:MAX_LANGS; _:lang += 1) {
+		_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
+	}
+#else
+	new
+		status,
+		code[MAX_LANG_CODE + 1],
+		name[MAX_LANG_NAME + 1],
+		filename[MAX_LANG_FILENAME + 1];
+
+	for (new Lang:lang; lang < Lang:MAX_LANGS; _:lang += 1) {
+		status = _Lang_GetVarString(LANG_SYSVAR_SLOT_CODE, code, .id = _:lang);
+		if (status) {
+			_Lang_SetCode(lang, code);
+		}
+
+		status = _Lang_GetVarString(LANG_SYSVAR_SLOT_NAME, name, .id = _:lang);
+		if (status) {
+			_Lang_SetName(lang, name);
+		}
+
+		if (_Lang_IsVarExists(LANG_SYSVAR_SLOT_STATUS, _:lang)) {
+			status = _Lang_GetVarInt(LANG_SYSVAR_SLOT_STATUS, _:lang);
+			_Lang_SetSlotStatus(lang, status);
+
+			gLangCount += 1;
+		} else {
+			_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
+		}
+
+		for (new fid; fid < MAX_LANG_FILES; fid += 1) {
+			status = _Lang_GetVarString(LANG_SYSVAR_SLOT_FILES, filename, .id = _Lang_GetFileNameVarId(lang, fid));
+			if (status) {
+				_Lang_SetFileName(lang, fid, filename);
+			}
+		}
+	}
+
+	_Lang_SetDefaultLang(Lang:_Lang_GetVarInt(LANG_SYSVAR_DEFAULT_LANG));
+
+	for (new playerid; playerid < MAX_PLAYERS; playerid += 1) {
+		_Lang_SetPlayerLang(playerid, Lang:_Lang_GetVarInt(LANG_SYSVAR_PLAYER_LANG, playerid));
+	}
+#endif
+}
 
 /*
 	Loading functions
@@ -248,10 +306,7 @@ stock Lang:Lang_Add(const code[], const name[])
 		return INVALID_LANG_ID;
 	}
 
-	new
-		Lang:lang;
-
-	lang = Lang_Get(code, name);
+	new Lang:lang = Lang_Get(code, name);
 
 	if (lang == INVALID_LANG_ID) {
 		lang = _Lang_GetFreeSlot();
@@ -264,7 +319,7 @@ stock Lang:Lang_Add(const code[], const name[])
 	Lang_SetCode(lang, code);
 	Lang_SetName(lang, name);
 
-	_Lang_SetSlotStatus(lang, LANG_SLOT_BUSY);
+	Lang_SetSlotStatus(lang, LANG_SLOT_BUSY);
 	gLangCount++;
 	return lang;
 }
@@ -282,9 +337,31 @@ stock Lang_Remove(Lang:lang)
 		Lang_UnloadFile(lang, .fid = fid);
 	}
 
-	_Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
+	Lang_SetSlotStatus(lang, LANG_SLOT_FREE);
 	gLangCount--;
 	return 1;
+}
+
+stock Lang_RemoveAll()
+{
+	for (new Lang:lang; lang < Lang:MAX_LANGS; lang++) {
+		Lang_Remove(lang);
+	}
+}
+
+static stock _Lang_SetFileName(Lang:lang, fid, const filename[])
+{
+	_Lang_strcpy(gLangFiles[_:lang][fid], filename, MAX_LANG_FILENAME);
+}
+
+static stock _Lang_ResetFileName(Lang:lang, fid)
+{
+	gLangFiles[_:lang][fid][0] = '\0';
+}
+
+static stock _Lang_GetFileNameVarId(Lang:lang, fid)
+{
+	return _:lang * MAX_LANG_FILES + fid;
 }
 
 stock Lang_LoadFile(Lang:lang, const filename[])
@@ -309,7 +386,12 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 	}
 
 	fid = _Lang_GetFreeFileSlot(lang);
-	_Lang_strcpy(gLangFiles[_:lang][fid], filename, MAX_LANG_FILENAME);
+	_Lang_SetFileName(lang, fid, filename);
+
+#if defined ENABLE_LANG_MULTISCRIPT
+	_Lang_SetVarString(LANG_SYSVAR_SLOT_FILES, filename, _Lang_GetFileNameVarId(lang, fid));
+	CallRemoteFunction("zlang_SetFileName", "dds", _:lang, fid, filename);
+#endif
 
 	new
 		i,
@@ -467,7 +549,12 @@ stock Lang_UnloadFile(Lang:lang, const filename[] = "", fid = INVALID_LANG_FILE_
 		return INVALID_LANG_FILE_ID;
 	}
 
-	gLangFiles[_:lang][fid][0] = '\0';
+	_Lang_ResetFileName(lang, fid);
+
+#if defined ENABLE_LANG_MULTISCRIPT
+	_Lang_DeleteVar(LANG_SYSVAR_SLOT_FILES, _Lang_GetFileNameVarId(lang, fid));
+	CallRemoteFunction("zlang_ResetFileName", "dd", _:lang, fid);
+#endif
 
 	new
 		sep_found,
@@ -512,35 +599,6 @@ stock Lang_Reload(Lang:lang)
 	}
 }
 
-stock Lang_LoadExternal()
-{
-	new
-		code_success,
-		name_success,
-		code[MAX_LANG_CODE + 1],
-		name[MAX_LANG_NAME + 1];
-
-	for (new lang = 0; lang < MAX_LANGS; lang += 1) {
-		code_success = _Lang_GetVarString(LANG_SYSVAR_SLOT_CODE, code, .id = lang);
-		if (!code_success) {
-			continue;
-		}
-
-		name_success = _Lang_GetVarString(LANG_SYSVAR_SLOT_NAME, name, .id = lang);
-		if (!name_success) {
-			continue;
-		}
-
-		_Lang_SetCode(Lang:lang, code);
-		_Lang_SetName(Lang:lang, name);
-
-		if (!_Lang_IsSlotHaveStatus(Lang:lang, LANG_SLOT_BUSY)) {
-			_Lang_SetSlotStatus(Lang:lang, LANG_SLOT_BUSY);
-			gLangCount++;
-		}
-	}
-}
-
 stock Lang:Lang_Get(const code[] = "", const name[] = "")
 {
 	new
@@ -564,11 +622,14 @@ stock Lang:Lang_Get(const code[] = "", const name[] = "")
 
 stock Lang_SetName(Lang:lang, const name[])
 {
+#if defined ENABLE_LANG_MULTISCRIPT
 	if (name[0] == '\0') {
 		_Lang_DeleteVar(LANG_SYSVAR_SLOT_NAME, _:lang);
 	} else {
 		_Lang_SetVarString(LANG_SYSVAR_SLOT_NAME, name, _:lang);
 	}
+	CallRemoteFunction("zlang_SetName", "ds", _:lang, name);
+#endif
 	return _Lang_SetName(lang, name);
 }
 
@@ -594,11 +655,14 @@ stock Lang_ReturnName(Lang:lang)
 
 stock Lang_SetCode(Lang:lang, const code[])
 {
+#if defined ENABLE_LANG_MULTISCRIPT
 	if (code[0] == '\0') {
 		_Lang_DeleteVar(LANG_SYSVAR_SLOT_CODE, _:lang);
 	} else {
 		_Lang_SetVarString(LANG_SYSVAR_SLOT_CODE, code, _:lang);
 	}
+	CallRemoteFunction("zlang_SetCode", "ds", _:lang, code);
+#endif
 	return _Lang_SetCode(lang, code);
 }
 
@@ -678,8 +742,25 @@ stock Lang_SetPlayerLang(playerid, Lang:lang)
 		return 0;
 	}
 
-	gPlayerLang[playerid] = lang;
+	Lang_SetPlayerLangInternal(playerid, lang);
 	return 1;
+}
+
+static stock Lang_SetPlayerLangInternal(playerid, Lang:lang)
+{
+	_Lang_SetPlayerLang(playerid, lang);
+
+#if defined ENABLE_LANG_MULTISCRIPT
+	_Lang_DeleteVar(LANG_SYSVAR_PLAYER_LANG, playerid);
+	_Lang_SetVarInt(LANG_SYSVAR_PLAYER_LANG, _:lang, playerid);
+
+	CallRemoteFunction("zlang_SetPlayerLang", "dd", playerid, _:lang);
+#endif
+}
+
+static stock _Lang_SetPlayerLang(playerid, Lang:lang)
+{
+	gPlayerLang[playerid] = lang;
 }
 
 stock Lang:Lang_GetPlayerLang(playerid)
@@ -694,7 +775,7 @@ stock Lang:Lang_SetPlayerLangByCode(playerid, const code[])
 		return INVALID_LANG_ID;
 	}
 
-	gPlayerLang[playerid] = lang;
+	Lang_SetPlayerLangInternal(playerid, lang);
 	return lang;
 }
 
@@ -705,7 +786,7 @@ stock Lang:Lang_SetPlayerLangByName(playerid, const name[])
 		return INVALID_LANG_ID;
 	}
 
-	gPlayerLang[playerid] = lang;
+	Lang_SetPlayerLangInternal(playerid, lang);
 	return lang;
 }
 
@@ -715,8 +796,19 @@ stock Lang_SetDefaultLang(Lang:lang)
 		return 0;
 	}
 
-	gDefaultLang = lang;
+	_Lang_SetDefaultLang(lang);
+
+#if defined ENABLE_LANG_MULTISCRIPT
+	_Lang_SetVarInt(LANG_SYSVAR_DEFAULT_LANG, _:lang);
+	CallRemoteFunction("zlang_SetDefaultLang", "d", _:lang);
+#endif
+
 	return 1;
+}
+
+static stock _Lang_SetDefaultLang(Lang:lang)
+{
+	gDefaultLang = lang;
 }
 
 stock Lang:Lang_GetDefaultLang()
@@ -1115,9 +1207,9 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 			Lang_format(text[lang], sizeof(text[]), text[lang], lang_start<3>);
 		}
 
-#if defined ENABLE_LANG_DYNAMIC_VARS
+	#if defined ENABLE_LANG_DYNAMIC_VARS
 		Lang_ProcessDynamicVars(lang, text[lang]);
-#endif
+	#endif
 	}
 
 #if defined foreach
@@ -1260,6 +1352,62 @@ stock Lang_UpdatePlayer3DTextLabel(playerid, PlayerText3D:id, color, const var[]
 }
 
 /*
+	Multiscript public functions
+*/
+
+#if defined ENABLE_LANG_MULTISCRIPT
+
+forward zlang_SetDefaultLang(Lang:lang);
+public zlang_SetDefaultLang(Lang:lang)
+{
+	_Lang_SetDefaultLang(lang);
+}
+
+forward zlang_SetPlayerLang(playerid, Lang:lang);
+public zlang_SetPlayerLang(playerid, Lang:lang)
+{
+	_Lang_SetPlayerLang(playerid, lang);
+}
+
+forward zlang_SetFileName(Lang:lang, fid, const filename[]);
+public zlang_SetFileName(Lang:lang, fid, const filename[])
+{
+	_Lang_SetFileName(lang, fid, filename);
+}
+
+forward zlang_ResetFileName(Lang:lang, fid);
+public zlang_ResetFileName(Lang:lang, fid)
+{
+	_Lang_ResetFileName(lang, fid);
+}
+
+forward zlang_SetName(Lang:lang, const name[]);
+public zlang_SetName(Lang:lang, const name[])
+{
+	_Lang_SetName(lang, name);
+}
+
+forward zlang_SetCode(Lang:lang, const name[]);
+public zlang_SetCode(Lang:lang, const name[])
+{
+	_Lang_SetCode(lang, name);
+}
+
+forward zlang_SetSlotStatus(Lang:lang, status);
+public zlang_SetSlotStatus(Lang:lang, status)
+{
+	if (_Lang_IsSlotHaveStatus(lang, LANG_SLOT_FREE) && (status & LANG_SLOT_BUSY)) {
+		gLangCount += 1;
+	} else if (_Lang_IsSlotHaveStatus(lang, LANG_SLOT_BUSY) && (status & LANG_SLOT_FREE)) {
+		gLangCount -= 1;
+	}
+
+	_Lang_SetSlotStatus(lang, status);
+}
+
+#endif
+
+/*
 	Vars
 */
 
@@ -1293,6 +1441,36 @@ static stock _Lang_GetVarString(const var[], text[], const size = sizeof(text), 
 #endif
 }
 
+static stock _Lang_SetVarInt(const var[], value, id = 0)
+{
+#if defined LANG_USE_GVAR
+	return SetGVarInt(var, value, LANG_VAR_OFFSET + id);
+#endif
+
+#if defined LANG_USE_SVAR
+	static
+		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
+
+	_Lang_GetSVarName(id, var, varname);
+	return SetSVarInt(varname, value);
+#endif
+}
+
+static stock _Lang_GetVarInt(const var[], id = 0)
+{
+#if defined LANG_USE_GVAR
+	return GetGVarInt(var, LANG_VAR_OFFSET + id);
+#endif
+
+#if defined LANG_USE_SVAR
+	static
+		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
+
+	_Lang_GetSVarName(id, var, varname);
+	return GetSVarInt(varname);
+#endif
+}
+
 static stock _Lang_DeleteVar(const var[], id = 0)
 {
 #if defined LANG_USE_GVAR
@@ -1305,6 +1483,21 @@ static stock _Lang_DeleteVar(const var[], id = 0)
 
 	_Lang_GetSVarName(id, var, varname);
 	return DeleteSVar(varname);
+#endif
+}
+
+static stock _Lang_IsVarExists(const var[], id = 0)
+{
+#if defined LANG_USE_GVAR
+	return GetGVarType(var, LANG_VAR_OFFSET + id) != GLOBAL_VARTYPE_NONE;
+#endif
+
+#if defined LANG_USE_SVAR
+	static
+		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
+
+	_Lang_GetSVarName(id, var, varname);
+	return GetSVarType(varname) != SERVER_VARTYPE_NONE;
 #endif
 }
 
@@ -1401,17 +1594,7 @@ static stock _Lang_RemoveText(Lang:lang, const var[])
 
 static stock _Lang_IsTextExists(Lang:lang, const var[])
 {
-#if defined LANG_USE_GVAR
-	return GetGVarType(var, LANG_VAR_OFFSET + _:lang) != GLOBAL_VARTYPE_NONE;
-#endif
-
-#if defined LANG_USE_SVAR
-	static
-		varname[MAX_LANG_PREFIX_SVAR_STRING + 1];
-
-	_Lang_GetSVarName(_:lang, var, varname);
-	return GetSVarType(varname) != SERVER_VARTYPE_NONE;
-#endif
+	return _Lang_IsVarExists(var, _:lang);
 }
 
 static stock _Lang_ProcessVars(Lang:lang, strings_with_vars)
@@ -1546,6 +1729,16 @@ static stock Lang:_Lang_GetFreeSlot()
 static stock _Lang_GetSlotStatus(Lang:lang)
 {
 	return gLangSlots{_:lang};
+}
+
+static stock Lang_SetSlotStatus(Lang:lang, status)
+{
+	_Lang_SetSlotStatus(lang, status);
+
+#if defined ENABLE_LANG_MULTISCRIPT
+	_Lang_SetVarInt(LANG_SYSVAR_SLOT_STATUS, status, _:lang);
+	CallRemoteFunction("zlang_SetSlotStatus", "dd", _:lang, status);
+#endif
 }
 
 static stock _Lang_SetSlotStatus(Lang:lang, status)
