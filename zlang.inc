@@ -344,7 +344,7 @@ stock Lang_Remove(Lang:lang)
 
 stock Lang_RemoveAll()
 {
-	for (new Lang:lang; lang < Lang:MAX_LANGS; lang += 1) {
+	for (new Lang:lang; lang < Lang:MAX_LANGS; _:lang += 1) {
 		Lang_Remove(lang);
 	}
 }
@@ -1055,7 +1055,7 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; _:lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1090,7 +1090,7 @@ stock Lang_SendTextToPlayers(const players[], const var[], lang_args<>)
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; _:lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1118,7 +1118,7 @@ stock Lang_SendTextToPlayersEx(const players[], const size = sizeof(players), co
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; _:lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1196,7 +1196,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 		Lang:lang,
 		text[Lang:MAX_LANGS][MAX_LANG_FORMAT_STRING + 1];
 
-	for (lang = Lang:0; lang < Lang:MAX_LANGS; lang += 1) {
+	for (lang = Lang:0; lang < Lang:MAX_LANGS; _:lang += 1) {
 		if (!Lang_IsValid(lang)) {
 			continue;
 		}
@@ -1764,7 +1764,7 @@ static stock _Lang_strcpy(result[], const source[], const size = sizeof(result))
 static stock _Lang_pow(value, degree)
 {
 	new result = 1;
-	while (degree != 0) {
+	while (degree > 0) {
 		degree -= 1;
 		result *= value;
 	}
