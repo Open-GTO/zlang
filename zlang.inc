@@ -1074,7 +1074,11 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 #if defined foreach
 	foreach (playerid : Player) {
 #else
+	#if defined _INC_open_mp
 	for (playerid = MAX_PLAYERS - 1; playerid != -1; playerid -= 1) {
+	#else
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid -= 1) {
+	#endif
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
@@ -1215,7 +1219,11 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 #if defined foreach
 	foreach (playerid : Player) {
 #else
+	#if defined _INC_open_mp
 	for (playerid = MAX_PLAYERS - 1; playerid != -1; playerid -= 1) {
+	#else
+	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid -= 1) {
+	#endif
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
