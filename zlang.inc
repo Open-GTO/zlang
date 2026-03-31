@@ -183,7 +183,7 @@ forward Lang:Lang_GetPlayerLang(playerid);
 	OnGameModeInit
 */
 
-#if defined _inc_y_hooks || defined _INC_y_hooks
+#if defined _inc_y_hooks || defined _INC_y_hooks || defined _pp_hooks_included
 	hook OnGameModeInit()
 #else
 	public OnGameModeInit()
@@ -193,12 +193,14 @@ forward Lang:Lang_GetPlayerLang(playerid);
 
 		#if defined ZLANG_OnGameModeInit
 			return ZLANG_OnGameModeInit();
+		#elseif defined _pp_hooks_included
+			return 0; // Will continue to the next hook
 		#else
 			return 1;
 		#endif
 	}
 
-#if !defined _inc_y_hooks && !defined _INC_y_hooks
+#if !defined _inc_y_hooks && !defined _INC_y_hooks && !defined _pp_hooks_included
 	#if defined _ALS_OnGameModeInit
 		#undef OnGameModeInit
 	#else
@@ -215,7 +217,7 @@ forward Lang:Lang_GetPlayerLang(playerid);
 	OnFilterScriptInit
 */
 
-#if defined _inc_y_hooks || defined _INC_y_hooks
+#if defined _inc_y_hooks || defined _INC_y_hooks || defined _pp_hooks_included
 	hook OnFilterScriptInit()
 #else
 	public OnFilterScriptInit()
@@ -225,12 +227,14 @@ forward Lang:Lang_GetPlayerLang(playerid);
 
 		#if defined ZLANG_OnFilterScriptInit
 			return ZLANG_OnFilterScriptInit();
+		#elseif defined _pp_hooks_included
+			return 0; // Will continue to the next hook
 		#else
 			return 1;
 		#endif
 	}
 
-#if !defined _inc_y_hooks && !defined _INC_y_hooks
+#if !defined _inc_y_hooks && !defined _INC_y_hooks && !defined _pp_hooks_included
 	#if defined _ALS_OnFilterScriptInit
 		#undef OnFilterScriptInit
 	#else
