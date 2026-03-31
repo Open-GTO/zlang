@@ -1215,7 +1215,7 @@ stock Lang_GameTextForAll(time, style, const var[], lang_args<>)
 #if defined foreach
 	foreach (playerid : Player) {
 #else
-	for (playerid = GetPlayerPoolSize(); playerid != -1; playerid -= 1) {
+	for (playerid = MAX_PLAYERS - 1; playerid != -1; playerid -= 1) {
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
