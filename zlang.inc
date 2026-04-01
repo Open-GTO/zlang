@@ -1085,7 +1085,6 @@ stock Lang_SendTextToAll(const var[], lang_args<>)
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
-#endif
 		SendClientMessage(playerid, -1, text[Lang_GetPlayerLang(playerid)]);
 	}
 }
