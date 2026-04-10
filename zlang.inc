@@ -390,6 +390,12 @@ stock Lang_LoadFile(Lang:lang, const filename[])
 	}
 
 	fid = _Lang_GetFreeFileSlot(lang);
+	if (fid == INVALID_LANG_FILE_ID) {
+		printf("Error: maximum number of language files reached for language '%s'", Lang_ReturnName(lang));
+		fclose(flang);
+		return INVALID_LANG_FILE_ID;
+	}
+
 	_Lang_SetFileName(lang, fid, filename);
 
 #if defined ENABLE_LANG_MULTISCRIPT
