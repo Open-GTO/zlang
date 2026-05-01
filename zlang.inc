@@ -1178,8 +1178,11 @@ stock Lang_ShowDialog(playerid, dialogid, style, const var_caption[], const var_
 #if defined ENABLE_LANG_DYNAMIC_VARS
 	Lang_ProcessDynamicVars(lang, info);
 #endif
-
+#if defined _INC_open_mp
+	return ShowPlayerDialog(playerid, dialogid, DIALOG_STYLE:style, caption, info, button1, button2);
+#else
 	return ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
+#endif
 }
 
 stock Lang_GameText(playerid, time, style, const var[], lang_args<>)
